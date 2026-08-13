@@ -16,8 +16,8 @@ from bs4 import BeautifulSoup
 
 BASE = "https://reitoweb.com/b_moba/doc/"
 STORE_ID = "11"
-RATE_TYPE = "6"  # 4円パチンコ
-UA = "ReitoPachinkoResearch/1.1 (+low-frequency personal research collector)"
+RATE_TYPE = "6"
+UA = "ReitoPachinkoResearch/1.2 (+low-frequency personal research collector)"
 
 
 @dataclass
@@ -25,7 +25,6 @@ class MachineModel:
     machine_id: str
     name: str
     flags: str
-    expected_units: int | None = None
 
 
 def clean(s: str) -> str:
@@ -71,73 +70,98 @@ def discover_models(html: str) -> list[MachineModel]:
         if not label:
             continue
 
-        flags_list = []
-        for flag in ("NEW", "増台", "オススメ"):
-            if flag in label:
-                flags_list.append(flag)
-
-        # 一覧ページのアンカーテキストを正式機種名として使う。
-        # "NEW増台ｅ○○" のような連結表記にも対応。
+        flags = [x for x in ("NEW", "増台", "オススメ") if x in label]
         name = label
-        for flag in ("NEW", "増台", "オススメ"):
-            name = name.replace(flag, "")
+        for x in ("NEW", "増台", "オススメ"):
+            name = name.replace(x, "")
         name = clean(name)
 
-        # 親要素に "(4 台)" 等があれば参考値として保存。
-        expected_units = None
-        parent_text = clean(a.parent.get_text(" ", strip=True)) if a.parent else ""
-        m_units = re.search(r"[\(（]\s*([0-9,]+)\s*台\s*[\)）]", parent_text)
-        if m_units:
-            expected_units = int(m_units.group(1).replace(",", ""))
-
         if name:
-            found[mid] = MachineModel(
-                machine_id=mid,
-                name=name,
-                flags=",".join(flags_list),
-                expected_units=expected_units,
-            )
+            found[mid] = MachineModel(mid, name, ",".join(flags))
 
     return list(found.values())
 
 
-def parse_machine_page(html: str) -> tuple[list[dict], str]:
-    """Return rows and page status. Machine name is intentionally NOT parsed here."""
-    soup = BeautifulSoup(html, "html.parser")
-    text = soup.get_text("\n", strip=True)
+def _grab_int(text: str, pattern: str):
+    m = re.search(pattern, text)
+    return int(m.group(1).replace(",", "")) if m else None
 
-    if "当日分のデータが見つかりませんでした" in text:
+
+def parse_machine_page(html: str, expected_machine_id: str) -> tuple[list[dict], dict]:
+    """
+    v1.2: detail-link based parser.
+    Each actual unit card has a machine.php?...&n=XXXX detail link.
+    This is more robust than relying only on visible 'XXXX 番台' text.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    page_text = soup.get_text("\n", strip=True)
+
+    if "当日分のデータが見つかりませんでした" in page_text:
         page_status = "no_data"
     else:
         page_status = "ok"
 
-    matches = list(re.finditer(r"(?m)^\s*(\d{4})\s*番台\s*$", text))
-    rows = []
+    rows_by_number: dict[str, dict] = {}
+    link_numbers: list[str] = []
 
-    for i, m in enumerate(matches):
-        number = m.group(1)
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        block = text[m.end():end]
+    for a in soup.find_all("a", href=True):
+        href = urljoin(BASE, a["href"])
+        p = urlparse(href)
+        if not p.path.endswith("/machine.php"):
+            continue
+        q = parse_qs(p.query)
 
-        # Footer/rate-category area is not part of this machine block.
-        for marker in ("1000／46枚S", "4円パチンコ", "レイトグループ"):
-            block = block.split(marker, 1)[0]
+        if q.get("h", [""])[0] != STORE_ID or q.get("t", [""])[0] != RATE_TYPE:
+            continue
+        mid = q.get("m", [""])[0]
+        num = q.get("n", [""])[0]
 
-        def grab(pattern):
-            mm = re.search(pattern, block)
-            return int(mm.group(1).replace(",", "")) if mm else None
+        if mid != expected_machine_id or not re.fullmatch(r"\d{4}", num):
+            continue
 
-        rows.append({
-            "machine_number": number,
-            "big_hits": grab(r"大当\s*([0-9,]+)\s*回"),
-            "kakuhen_jitan": grab(r"確変[／/]\s*時短\s*([0-9,]+)\s*回"),
-            "max_balls": grab(r"最大持玉\s*([0-9,]+)\s*玉"),
-        })
+        link_numbers.append(num)
 
+        # The nearest Bootstrap card contains the corresponding public metrics.
+        card = a.find_parent("div", class_=lambda c: c and "card" in str(c).split())
+        if card is None:
+            card = a.parent
+        block = clean(card.get_text(" ", strip=True)) if card else ""
+
+        rows_by_number[num] = {
+            "machine_number": num,
+            "big_hits": _grab_int(block, r"大当\s*([0-9,]+)\s*回"),
+            "kakuhen_jitan": _grab_int(block, r"確変[／/]\s*時短\s*([0-9,]+)\s*回"),
+            "max_balls": _grab_int(block, r"最大持玉\s*([0-9,]+)\s*玉"),
+        }
+
+    # Fallback to legacy visible-text parser if detail links are absent.
+    if not rows_by_number:
+        matches = list(re.finditer(r"(?m)^\s*(\d{4})\s*番台\s*$", page_text))
+        for i, m in enumerate(matches):
+            num = m.group(1)
+            end = matches[i + 1].start() if i + 1 < len(matches) else len(page_text)
+            block = page_text[m.end():end]
+            rows_by_number[num] = {
+                "machine_number": num,
+                "big_hits": _grab_int(block, r"大当\s*([0-9,]+)\s*回"),
+                "kakuhen_jitan": _grab_int(block, r"確変[／/]\s*時短\s*([0-9,]+)\s*回"),
+                "max_balls": _grab_int(block, r"最大持玉\s*([0-9,]+)\s*玉"),
+            }
+        if rows_by_number:
+            page_status = "fallback_text"
+
+    rows = list(rows_by_number.values())
     if not rows and page_status == "ok":
         page_status = "parsed_zero"
 
-    return rows, page_status
+    diag = {
+        "page_status": page_status,
+        "detail_link_count": len(link_numbers),
+        "unique_detail_links": len(set(link_numbers)),
+        "parsed_rows": len(rows),
+        "duplicate_link_count": len(link_numbers) - len(set(link_numbers)),
+    }
+    return rows, diag
 
 
 def init_db(conn: sqlite3.Connection):
@@ -175,6 +199,9 @@ def init_db(conn: sqlite3.Connection):
       missing_units INTEGER,
       model_count INTEGER NOT NULL,
       models_with_no_rows INTEGER NOT NULL,
+      detail_links INTEGER DEFAULT 0,
+      unique_detail_links INTEGER DEFAULT 0,
+      duplicate_links INTEGER DEFAULT 0,
       collected_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -182,11 +209,31 @@ def init_db(conn: sqlite3.Connection):
       record_date TEXT NOT NULL,
       machine_id TEXT NOT NULL,
       machine_name TEXT NOT NULL,
-      expected_units INTEGER,
       page_status TEXT NOT NULL,
+      detail_link_count INTEGER DEFAULT 0,
+      unique_detail_links INTEGER DEFAULT 0,
+      parsed_rows INTEGER DEFAULT 0,
+      duplicate_link_count INTEGER DEFAULT 0,
       PRIMARY KEY (record_date, machine_id)
     );
     """)
+
+    # Migrate older v1.1 database safely.
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(collection_coverage)")}
+    for name in ("detail_links", "unique_detail_links", "duplicate_links"):
+        if name not in cols:
+            conn.execute(f"ALTER TABLE collection_coverage ADD COLUMN {name} INTEGER DEFAULT 0")
+
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(collection_issues)")}
+    additions = {
+        "detail_link_count": "INTEGER DEFAULT 0",
+        "unique_detail_links": "INTEGER DEFAULT 0",
+        "parsed_rows": "INTEGER DEFAULT 0",
+        "duplicate_link_count": "INTEGER DEFAULT 0",
+    }
+    for name, typ in additions.items():
+        if name not in cols:
+            conn.execute(f"ALTER TABLE collection_issues ADD COLUMN {name} {typ}")
 
 
 def detect_changes(conn: sqlite3.Connection, target_date: str):
@@ -208,7 +255,6 @@ def detect_changes(conn: sqlite3.Connection, target_date: str):
             (prev,)
         )
     }
-
     for num, (new_id, new_name) in current.items():
         if num in previous:
             old_id, old_name = previous[num]
@@ -245,6 +291,7 @@ def collect(out_dir: Path, sleep_sec: float):
 
     today = date.today()
     summary = {
+        "version": "1.2",
         "collected_on": str(today),
         "official_units": official_units,
         "models": len(models),
@@ -253,7 +300,6 @@ def collect(out_dir: Path, sleep_sec: float):
         "coverage": {},
     }
 
-    # Save the index itself too.
     (raw_dir / f"index_{today}.html").write_text(index_html, encoding="utf-8")
 
     for day_offset in (0, 1, 2):
@@ -263,6 +309,9 @@ def collect(out_dir: Path, sleep_sec: float):
 
         conn.execute("DELETE FROM collection_issues WHERE record_date=?", (record_date,))
         no_row_models = 0
+        total_links = 0
+        total_unique_links = 0
+        total_duplicate_links = 0
 
         for model in models:
             url = f"{BASE}data.php?h={STORE_ID}&m={model.machine_id}&t={RATE_TYPE}"
@@ -275,21 +324,27 @@ def collect(out_dir: Path, sleep_sec: float):
                 html, encoding="utf-8"
             )
 
-            rows, page_status = parse_machine_page(html)
+            rows, diag = parse_machine_page(html, model.machine_id)
+            total_links += diag["detail_link_count"]
+            total_unique_links += diag["unique_detail_links"]
+            total_duplicate_links += diag["duplicate_link_count"]
 
             if not rows:
                 no_row_models += 1
-                conn.execute("""
-                    INSERT OR REPLACE INTO collection_issues
-                    (record_date,machine_id,machine_name,expected_units,page_status)
-                    VALUES (?,?,?,?,?)
-                """, (
-                    record_date, model.machine_id, model.name,
-                    model.expected_units, page_status
-                ))
+
+            # Store diagnostics for every model, not only errors.
+            conn.execute("""
+                INSERT OR REPLACE INTO collection_issues
+                (record_date,machine_id,machine_name,page_status,
+                 detail_link_count,unique_detail_links,parsed_rows,duplicate_link_count)
+                VALUES (?,?,?,?,?,?,?,?)
+            """, (
+                record_date, model.machine_id, model.name, diag["page_status"],
+                diag["detail_link_count"], diag["unique_detail_links"],
+                diag["parsed_rows"], diag["duplicate_link_count"]
+            ))
 
             for row in rows:
-                # IMPORTANT: always use name from the machine-list page.
                 conn.execute("""
                 INSERT INTO daily_records
                 (record_date,machine_number,machine_id,machine_name,flags,
@@ -320,23 +375,20 @@ def collect(out_dir: Path, sleep_sec: float):
         collected_units = conn.execute(
             "SELECT COUNT(*) FROM daily_records WHERE record_date=?", (record_date,)
         ).fetchone()[0]
-
-        # Official total is current-day information. For prior days it is only a reference.
         official_for_day = official_units if day_offset == 0 else None
         missing_units = (
             max(official_units - collected_units, 0)
-            if day_offset == 0 and official_units is not None
-            else None
+            if day_offset == 0 and official_units is not None else None
         )
 
         conn.execute("""
             INSERT OR REPLACE INTO collection_coverage
-            (record_date,official_units,collected_units,missing_units,
-             model_count,models_with_no_rows,collected_at)
-            VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)
+            (record_date,official_units,collected_units,missing_units,model_count,
+             models_with_no_rows,detail_links,unique_detail_links,duplicate_links,collected_at)
+            VALUES (?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
         """, (
-            record_date, official_for_day, collected_units, missing_units,
-            len(models), no_row_models
+            record_date, official_for_day, collected_units, missing_units, len(models),
+            no_row_models, total_links, total_unique_links, total_duplicate_links
         ))
         conn.commit()
 
@@ -345,9 +397,11 @@ def collect(out_dir: Path, sleep_sec: float):
             "collected_units": collected_units,
             "missing_units": missing_units,
             "models_with_no_rows": no_row_models,
+            "detail_links": total_links,
+            "unique_detail_links": total_unique_links,
+            "duplicate_links": total_duplicate_links,
         }
 
-    # Export main records.
     with open(out_dir / "daily_records.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
         w.writerow([
@@ -360,20 +414,22 @@ def collect(out_dir: Path, sleep_sec: float):
             FROM daily_records ORDER BY record_date,machine_number
         """))
 
-    # Export diagnostics.
     with open(out_dir / "collection_issues.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
-        w.writerow(["record_date","machine_id","machine_name","expected_units","page_status"])
+        w.writerow([
+            "record_date","machine_id","machine_name","page_status",
+            "detail_link_count","unique_detail_links","parsed_rows","duplicate_link_count"
+        ])
         w.writerows(conn.execute("""
-            SELECT record_date,machine_id,machine_name,expected_units,page_status
-            FROM collection_issues ORDER BY record_date,machine_name
+            SELECT record_date,machine_id,machine_name,page_status,
+                   detail_link_count,unique_detail_links,parsed_rows,duplicate_link_count
+            FROM collection_issues
+            ORDER BY record_date,machine_name
         """))
 
     (out_dir / "last_run.json").write_text(
-        json.dumps(summary, ensure_ascii=False, indent=2),
-        encoding="utf-8"
+        json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-
     conn.close()
     return summary
 
@@ -381,12 +437,6 @@ def collect(out_dir: Path, sleep_sec: float):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="data")
-    ap.add_argument(
-        "--sleep", type=float, default=0.35,
-        help="seconds between machine-model page requests"
-    )
+    ap.add_argument("--sleep", type=float, default=0.35)
     args = ap.parse_args()
-    print(json.dumps(
-        collect(Path(args.out), args.sleep),
-        ensure_ascii=False, indent=2
-    ))
+    print(json.dumps(collect(Path(args.out), args.sleep), ensure_ascii=False, indent=2))
