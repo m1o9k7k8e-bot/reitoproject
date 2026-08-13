@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 BASE = "https://reitoweb.com/b_moba/doc/"
 STORE_ID = "11"
 RATE_TYPE = "6"
-UA = "ReitoPachinkoResearch/1.2 (+low-frequency personal research collector)"
+UA = "ReitoPachinkoResearch/2.0 (+low-frequency personal research collector)"
 
 
 @dataclass
@@ -88,11 +88,6 @@ def _grab_int(text: str, pattern: str):
 
 
 def parse_machine_page(html: str, expected_machine_id: str) -> tuple[list[dict], dict]:
-    """
-    v1.2: detail-link based parser.
-    Each actual unit card has a machine.php?...&n=XXXX detail link.
-    This is more robust than relying only on visible 'XXXX 番台' text.
-    """
     soup = BeautifulSoup(html, "html.parser")
     page_text = soup.get_text("\n", strip=True)
 
@@ -110,18 +105,14 @@ def parse_machine_page(html: str, expected_machine_id: str) -> tuple[list[dict],
         if not p.path.endswith("/machine.php"):
             continue
         q = parse_qs(p.query)
-
         if q.get("h", [""])[0] != STORE_ID or q.get("t", [""])[0] != RATE_TYPE:
             continue
         mid = q.get("m", [""])[0]
         num = q.get("n", [""])[0]
-
         if mid != expected_machine_id or not re.fullmatch(r"\d{4}", num):
             continue
 
         link_numbers.append(num)
-
-        # The nearest Bootstrap card contains the corresponding public metrics.
         card = a.find_parent("div", class_=lambda c: c and "card" in str(c).split())
         if card is None:
             card = a.parent
@@ -134,7 +125,6 @@ def parse_machine_page(html: str, expected_machine_id: str) -> tuple[list[dict],
             "max_balls": _grab_int(block, r"最大持玉\s*([0-9,]+)\s*玉"),
         }
 
-    # Fallback to legacy visible-text parser if detail links are absent.
     if not rows_by_number:
         matches = list(re.finditer(r"(?m)^\s*(\d{4})\s*番台\s*$", page_text))
         for i, m in enumerate(matches):
@@ -154,14 +144,13 @@ def parse_machine_page(html: str, expected_machine_id: str) -> tuple[list[dict],
     if not rows and page_status == "ok":
         page_status = "parsed_zero"
 
-    diag = {
+    return rows, {
         "page_status": page_status,
         "detail_link_count": len(link_numbers),
         "unique_detail_links": len(set(link_numbers)),
         "parsed_rows": len(rows),
         "duplicate_link_count": len(link_numbers) - len(set(link_numbers)),
     }
-    return rows, diag
 
 
 def init_db(conn: sqlite3.Connection):
@@ -218,23 +207,6 @@ def init_db(conn: sqlite3.Connection):
     );
     """)
 
-    # Migrate older v1.1 database safely.
-    cols = {r[1] for r in conn.execute("PRAGMA table_info(collection_coverage)")}
-    for name in ("detail_links", "unique_detail_links", "duplicate_links"):
-        if name not in cols:
-            conn.execute(f"ALTER TABLE collection_coverage ADD COLUMN {name} INTEGER DEFAULT 0")
-
-    cols = {r[1] for r in conn.execute("PRAGMA table_info(collection_issues)")}
-    additions = {
-        "detail_link_count": "INTEGER DEFAULT 0",
-        "unique_detail_links": "INTEGER DEFAULT 0",
-        "parsed_rows": "INTEGER DEFAULT 0",
-        "duplicate_link_count": "INTEGER DEFAULT 0",
-    }
-    for name, typ in additions.items():
-        if name not in cols:
-            conn.execute(f"ALTER TABLE collection_issues ADD COLUMN {name} {typ}")
-
 
 def detect_changes(conn: sqlite3.Connection, target_date: str):
     prev = conn.execute(
@@ -273,16 +245,12 @@ def collect(out_dir: Path, sleep_sec: float):
     db_path = out_dir / "reito.sqlite"
 
     session = requests.Session()
-    session.headers.update({
-        "User-Agent": UA,
-        "Accept-Language": "ja-JP,ja;q=0.9",
-    })
+    session.headers.update({"User-Agent": UA, "Accept-Language": "ja-JP,ja;q=0.9"})
 
     index_url = f"{BASE}data.php?h={STORE_ID}&t={RATE_TYPE}"
     index_html = get(session, index_url)
     models = discover_models(index_html)
     official_units = official_total_units(index_html)
-
     if not models:
         raise RuntimeError("No machine models found; site structure may have changed.")
 
@@ -291,7 +259,7 @@ def collect(out_dir: Path, sleep_sec: float):
 
     today = date.today()
     summary = {
-        "version": "1.2",
+        "version": "2.0",
         "collected_on": str(today),
         "official_units": official_units,
         "models": len(models),
@@ -309,9 +277,7 @@ def collect(out_dir: Path, sleep_sec: float):
 
         conn.execute("DELETE FROM collection_issues WHERE record_date=?", (record_date,))
         no_row_models = 0
-        total_links = 0
-        total_unique_links = 0
-        total_duplicate_links = 0
+        total_links = total_unique_links = total_duplicate_links = 0
 
         for model in models:
             url = f"{BASE}data.php?h={STORE_ID}&m={model.machine_id}&t={RATE_TYPE}"
@@ -320,19 +286,15 @@ def collect(out_dir: Path, sleep_sec: float):
 
             html = get(session, url)
             summary["pages"] += 1
-            (day_raw / f"{model.machine_id}_d{day_offset}.html").write_text(
-                html, encoding="utf-8"
-            )
+            (day_raw / f"{model.machine_id}_d{day_offset}.html").write_text(html, encoding="utf-8")
 
             rows, diag = parse_machine_page(html, model.machine_id)
             total_links += diag["detail_link_count"]
             total_unique_links += diag["unique_detail_links"]
             total_duplicate_links += diag["duplicate_link_count"]
-
             if not rows:
                 no_row_models += 1
 
-            # Store diagnostics for every model, not only errors.
             conn.execute("""
                 INSERT OR REPLACE INTO collection_issues
                 (record_date,machine_id,machine_name,page_status,
@@ -412,19 +374,6 @@ def collect(out_dir: Path, sleep_sec: float):
             SELECT record_date,machine_number,machine_id,machine_name,flags,
                    big_hits,kakuhen_jitan,max_balls,source_day_offset,collected_at
             FROM daily_records ORDER BY record_date,machine_number
-        """))
-
-    with open(out_dir / "collection_issues.csv", "w", newline="", encoding="utf-8-sig") as f:
-        w = csv.writer(f)
-        w.writerow([
-            "record_date","machine_id","machine_name","page_status",
-            "detail_link_count","unique_detail_links","parsed_rows","duplicate_link_count"
-        ])
-        w.writerows(conn.execute("""
-            SELECT record_date,machine_id,machine_name,page_status,
-                   detail_link_count,unique_detail_links,parsed_rows,duplicate_link_count
-            FROM collection_issues
-            ORDER BY record_date,machine_name
         """))
 
     (out_dir / "last_run.json").write_text(
