@@ -7,7 +7,7 @@ import re
 import sqlite3
 import time
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 from urllib.parse import urljoin, urlparse, parse_qs
 
@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 BASE = "https://reitoweb.com/b_moba/doc/"
 STORE_ID = "11"
 RATE_TYPE = "6"
-UA = "ReitoPachinkoResearch/2.0 (+low-frequency personal research collector)"
+UA = "ReitoPachinkoResearch/2.1 (+low-frequency personal research collector)"
 
 
 @dataclass
@@ -69,7 +69,6 @@ def discover_models(html: str) -> list[MachineModel]:
         label = clean(a.get_text(" ", strip=True))
         if not label:
             continue
-
         flags = [x for x in ("NEW", "増台", "オススメ") if x in label]
         name = label
         for x in ("NEW", "増台", "オススメ"):
@@ -90,11 +89,6 @@ def _grab_int(text: str, pattern: str):
 def parse_machine_page(html: str, expected_machine_id: str) -> tuple[list[dict], dict]:
     soup = BeautifulSoup(html, "html.parser")
     page_text = soup.get_text("\n", strip=True)
-
-    if "当日分のデータが見つかりませんでした" in page_text:
-        page_status = "no_data"
-    else:
-        page_status = "ok"
 
     rows_by_number: dict[str, dict] = {}
     link_numbers: list[str] = []
@@ -125,27 +119,10 @@ def parse_machine_page(html: str, expected_machine_id: str) -> tuple[list[dict],
             "max_balls": _grab_int(block, r"最大持玉\s*([0-9,]+)\s*玉"),
         }
 
-    if not rows_by_number:
-        matches = list(re.finditer(r"(?m)^\s*(\d{4})\s*番台\s*$", page_text))
-        for i, m in enumerate(matches):
-            num = m.group(1)
-            end = matches[i + 1].start() if i + 1 < len(matches) else len(page_text)
-            block = page_text[m.end():end]
-            rows_by_number[num] = {
-                "machine_number": num,
-                "big_hits": _grab_int(block, r"大当\s*([0-9,]+)\s*回"),
-                "kakuhen_jitan": _grab_int(block, r"確変[／/]\s*時短\s*([0-9,]+)\s*回"),
-                "max_balls": _grab_int(block, r"最大持玉\s*([0-9,]+)\s*玉"),
-            }
-        if rows_by_number:
-            page_status = "fallback_text"
-
     rows = list(rows_by_number.values())
-    if not rows and page_status == "ok":
-        page_status = "parsed_zero"
-
+    status = "ok" if rows else "parsed_zero"
     return rows, {
-        "page_status": page_status,
+        "page_status": status,
         "detail_link_count": len(link_numbers),
         "unique_detail_links": len(set(link_numbers)),
         "parsed_rows": len(rows),
@@ -193,19 +170,19 @@ def init_db(conn: sqlite3.Connection):
       duplicate_links INTEGER DEFAULT 0,
       collected_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
-
-    CREATE TABLE IF NOT EXISTS collection_issues (
-      record_date TEXT NOT NULL,
-      machine_id TEXT NOT NULL,
-      machine_name TEXT NOT NULL,
-      page_status TEXT NOT NULL,
-      detail_link_count INTEGER DEFAULT 0,
-      unique_detail_links INTEGER DEFAULT 0,
-      parsed_rows INTEGER DEFAULT 0,
-      duplicate_link_count INTEGER DEFAULT 0,
-      PRIMARY KEY (record_date, machine_id)
-    );
     """)
+
+
+def remove_unreliable_seed_history(conn: sqlite3.Connection):
+    # v1/v2 seeded "previous days" using d=1/d=2 on data.php.
+    # The site ignores that parameter for these machine-list pages, so those rows
+    # are not trustworthy. From v2.1 onward only real daily snapshots are kept.
+    conn.execute("DELETE FROM daily_records WHERE source_day_offset > 0")
+    conn.execute("""
+        DELETE FROM collection_coverage
+        WHERE record_date NOT IN (SELECT DISTINCT record_date FROM daily_records)
+    """)
+    conn.commit()
 
 
 def detect_changes(conn: sqlite3.Connection, target_date: str):
@@ -256,113 +233,72 @@ def collect(out_dir: Path, sleep_sec: float):
 
     conn = sqlite3.connect(db_path)
     init_db(conn)
+    remove_unreliable_seed_history(conn)
 
     today = date.today()
-    summary = {
-        "version": "2.0",
-        "collected_on": str(today),
-        "official_units": official_units,
-        "models": len(models),
-        "pages": 0,
-        "records_processed": 0,
-        "coverage": {},
-    }
-
+    record_date = str(today)
+    day_raw = raw_dir / record_date
+    day_raw.mkdir(parents=True, exist_ok=True)
     (raw_dir / f"index_{today}.html").write_text(index_html, encoding="utf-8")
 
-    for day_offset in (0, 1, 2):
-        record_date = str(today - timedelta(days=day_offset))
-        day_raw = raw_dir / record_date
-        day_raw.mkdir(parents=True, exist_ok=True)
+    total_links = total_unique_links = total_duplicate_links = 0
+    no_row_models = 0
+    records_processed = 0
 
-        conn.execute("DELETE FROM collection_issues WHERE record_date=?", (record_date,))
-        no_row_models = 0
-        total_links = total_unique_links = total_duplicate_links = 0
+    for model in models:
+        url = f"{BASE}data.php?h={STORE_ID}&m={model.machine_id}&t={RATE_TYPE}"
+        page = get(session, url)
+        (day_raw / f"{model.machine_id}_d0.html").write_text(page, encoding="utf-8")
 
-        for model in models:
-            url = f"{BASE}data.php?h={STORE_ID}&m={model.machine_id}&t={RATE_TYPE}"
-            if day_offset:
-                url += f"&d={day_offset}"
+        rows, diag = parse_machine_page(page, model.machine_id)
+        total_links += diag["detail_link_count"]
+        total_unique_links += diag["unique_detail_links"]
+        total_duplicate_links += diag["duplicate_link_count"]
+        if not rows:
+            no_row_models += 1
 
-            html = get(session, url)
-            summary["pages"] += 1
-            (day_raw / f"{model.machine_id}_d{day_offset}.html").write_text(html, encoding="utf-8")
-
-            rows, diag = parse_machine_page(html, model.machine_id)
-            total_links += diag["detail_link_count"]
-            total_unique_links += diag["unique_detail_links"]
-            total_duplicate_links += diag["duplicate_link_count"]
-            if not rows:
-                no_row_models += 1
-
+        for row in rows:
             conn.execute("""
-                INSERT OR REPLACE INTO collection_issues
-                (record_date,machine_id,machine_name,page_status,
-                 detail_link_count,unique_detail_links,parsed_rows,duplicate_link_count)
-                VALUES (?,?,?,?,?,?,?,?)
+            INSERT INTO daily_records
+            (record_date,machine_number,machine_id,machine_name,flags,
+             big_hits,kakuhen_jitan,max_balls,source_day_offset)
+            VALUES (?,?,?,?,?,?,?,?,0)
+            ON CONFLICT(record_date,machine_number) DO UPDATE SET
+              machine_id=excluded.machine_id,
+              machine_name=excluded.machine_name,
+              flags=excluded.flags,
+              big_hits=excluded.big_hits,
+              kakuhen_jitan=excluded.kakuhen_jitan,
+              max_balls=excluded.max_balls,
+              source_day_offset=0,
+              collected_at=CURRENT_TIMESTAMP
             """, (
-                record_date, model.machine_id, model.name, diag["page_status"],
-                diag["detail_link_count"], diag["unique_detail_links"],
-                diag["parsed_rows"], diag["duplicate_link_count"]
+                record_date, row["machine_number"], model.machine_id, model.name,
+                model.flags, row["big_hits"], row["kakuhen_jitan"], row["max_balls"]
             ))
+            records_processed += 1
 
-            for row in rows:
-                conn.execute("""
-                INSERT INTO daily_records
-                (record_date,machine_number,machine_id,machine_name,flags,
-                 big_hits,kakuhen_jitan,max_balls,source_day_offset)
-                VALUES (?,?,?,?,?,?,?,?,?)
-                ON CONFLICT(record_date,machine_number) DO UPDATE SET
-                  machine_id=excluded.machine_id,
-                  machine_name=excluded.machine_name,
-                  flags=excluded.flags,
-                  big_hits=excluded.big_hits,
-                  kakuhen_jitan=excluded.kakuhen_jitan,
-                  max_balls=excluded.max_balls,
-                  source_day_offset=MIN(daily_records.source_day_offset, excluded.source_day_offset),
-                  collected_at=CURRENT_TIMESTAMP
-                """, (
-                    record_date, row["machine_number"], model.machine_id, model.name,
-                    model.flags, row["big_hits"], row["kakuhen_jitan"],
-                    row["max_balls"], day_offset
-                ))
-                summary["records_processed"] += 1
-
-            conn.commit()
-            if sleep_sec:
-                time.sleep(sleep_sec)
-
-        detect_changes(conn, record_date)
-
-        collected_units = conn.execute(
-            "SELECT COUNT(*) FROM daily_records WHERE record_date=?", (record_date,)
-        ).fetchone()[0]
-        official_for_day = official_units if day_offset == 0 else None
-        missing_units = (
-            max(official_units - collected_units, 0)
-            if day_offset == 0 and official_units is not None else None
-        )
-
-        conn.execute("""
-            INSERT OR REPLACE INTO collection_coverage
-            (record_date,official_units,collected_units,missing_units,model_count,
-             models_with_no_rows,detail_links,unique_detail_links,duplicate_links,collected_at)
-            VALUES (?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
-        """, (
-            record_date, official_for_day, collected_units, missing_units, len(models),
-            no_row_models, total_links, total_unique_links, total_duplicate_links
-        ))
         conn.commit()
+        if sleep_sec:
+            time.sleep(sleep_sec)
 
-        summary["coverage"][record_date] = {
-            "official_units": official_for_day,
-            "collected_units": collected_units,
-            "missing_units": missing_units,
-            "models_with_no_rows": no_row_models,
-            "detail_links": total_links,
-            "unique_detail_links": total_unique_links,
-            "duplicate_links": total_duplicate_links,
-        }
+    detect_changes(conn, record_date)
+
+    collected_units = conn.execute(
+        "SELECT COUNT(*) FROM daily_records WHERE record_date=?", (record_date,)
+    ).fetchone()[0]
+    missing_units = max(official_units - collected_units, 0) if official_units is not None else None
+
+    conn.execute("""
+        INSERT OR REPLACE INTO collection_coverage
+        (record_date,official_units,collected_units,missing_units,model_count,
+         models_with_no_rows,detail_links,unique_detail_links,duplicate_links,collected_at)
+        VALUES (?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+    """, (
+        record_date, official_units, collected_units, missing_units, len(models),
+        no_row_models, total_links, total_unique_links, total_duplicate_links
+    ))
+    conn.commit()
 
     with open(out_dir / "daily_records.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
@@ -376,6 +312,17 @@ def collect(out_dir: Path, sleep_sec: float):
             FROM daily_records ORDER BY record_date,machine_number
         """))
 
+    summary = {
+        "version": "2.1",
+        "collected_on": record_date,
+        "official_units": official_units,
+        "collected_units": collected_units,
+        "missing_units": missing_units,
+        "models": len(models),
+        "detail_links": total_links,
+        "records_processed": records_processed,
+        "note": "Only real same-day snapshots are stored. Legacy d=1/d=2 seeded history was removed."
+    }
     (out_dir / "last_run.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
