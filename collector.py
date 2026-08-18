@@ -7,7 +7,8 @@ import re
 import sqlite3
 import time
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from urllib.parse import urljoin, urlparse, parse_qs
 
