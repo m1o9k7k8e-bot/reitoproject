@@ -1,11 +1,13 @@
 {
-  "version": "2.1",
-  "collected_on": "2026-08-16",
-  "official_units": 283,
-  "collected_units": 282,
-  "missing_units": 1,
-  "models": 112,
-  "detail_links": 282,
-  "records_processed": 282,
-  "note": "Only real same-day snapshots are stored. Legacy d=1/d=2 seeded history was removed."
+  "version": "2.2",
+  "collected_on": "2026-08-18",
+  "official_units": null,
+  "collected_units": 283,
+  "missing_units": null,
+  "coverage_ratio": null,
+  "models": 113,
+  "model_errors": 0,
+  "detail_links": 283,
+  "records_processed": 283,
+  "note": "Only real same-day snapshots are stored. A run is committed only when coverage passes quality checks."
 }
