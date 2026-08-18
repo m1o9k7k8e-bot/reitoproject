@@ -271,7 +271,7 @@ def collect(out_dir: Path, sleep_sec: float):
     init_db(conn)
     remove_unreliable_seed_history(conn)
 
-    today = date.today()
+    today = datetime.now(ZoneInfo("Asia/Tokyo")).date()
     record_date = str(today)
     day_raw = raw_dir / record_date
     day_raw.mkdir(parents=True, exist_ok=True)
