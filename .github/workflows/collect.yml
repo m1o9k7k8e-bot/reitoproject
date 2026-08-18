@@ -3,15 +3,21 @@ name: Collect Reito pachinko data
 on:
   workflow_dispatch:
   schedule:
-    # 毎日23:30 JST
-    - cron: "30 14 * * *"
+    # JST 20:30 / 21:30 / 22:30 / 23:30
+    # GitHub Actions cron is UTC.
+    - cron: "30 11,12,13,14 * * *"
 
 permissions:
   contents: write
 
+concurrency:
+  group: reito-pachinko-collector
+  cancel-in-progress: false
+
 jobs:
   collect:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
@@ -26,15 +32,25 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Collect Reito data
+        id: collect
+        continue-on-error: true
         run: python collector.py --out data --sleep 0.35
 
       - name: Build dashboard
+        if: steps.collect.outcome == 'success'
         run: python build_site.py
 
       - name: Save collected data
+        if: steps.collect.outcome == 'success'
         run: |
           git config user.name "reito-data-bot"
           git config user.email "actions@users.noreply.github.com"
           git add data docs
           git diff --cached --quiet || git commit -m "Update pachinko data"
           git push
+
+      - name: Fail workflow if collection failed
+        if: steps.collect.outcome != 'success'
+        run: |
+          echo "Collection failed or snapshot quality was insufficient."
+          exit 1
