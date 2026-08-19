@@ -3,9 +3,9 @@ name: Collect Reito pachinko data
 on:
   workflow_dispatch:
   schedule:
-    # JST 20:30 / 21:30 / 22:30 / 23:30
+    # JST 23:30
     # GitHub Actions cron is UTC.
-    - cron: "30 11,12,13,14 * * *"
+    - cron: "30 14 * * *"
 
 permissions:
   contents: write
