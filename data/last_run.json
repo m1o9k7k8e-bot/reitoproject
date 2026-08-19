@@ -9,25 +9,6 @@
   "model_errors": 0,
   "detail_links": 283,
   "records_processed": 283,
-  "backfill": {
-    "1": {
-      "target_date": "2026-08-18",
-      "parsed_units": 0,
-      "parsed_ratio": 0.0,
-      "active_units": 0,
-      "applied_units": 0,
-      "status": "rejected_quality_guard"
-    },
-    "2": {
-      "target_date": "2026-08-17",
-      "parsed_units": 0,
-      "parsed_ratio": 0.0,
-      "active_units": 0,
-      "applied_units": 0,
-      "status": "rejected_quality_guard"
-    },
-    "detail_pages_fetched": 283,
-    "detail_errors": 0
-  },
-  "note": "Same-day snapshots use JST. If yesterday/the day before is missing or all-blank, machine detail pages are used to recover 前日/前々日 data. Existing historical rows with real values are never overwritten."
+  "backfill": {},
+  "note": "Same-day snapshots use JST. Historical automatic backfill is disabled to reduce requests. Same-day pachinko data collection remains enabled."
 }
