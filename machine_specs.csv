@@ -18,7 +18,7 @@ machine_id,machine_name,normal_odds,right_odds,entry_rate,continuation_rate,uppe
 1612,ＰＡスーパー海物語ＩＮ沖縄６ＲＢＤ,約1/99.9,約1/9.9,ST 100%,,約82%,https://www.p-world.co.jp/machine/database/10462,2026-08-21,Withえなこ;上位はジンベェタイム
 1355,ＰＡ海物語極ジャパンＨＢＤ,約1/99.9,,,,,https://g-net-ps.com/wp-content/uploads/2025/10/23b5137fc61d0e2fe88d8272c79c42aa.pdf,2026-08-21,確認できた公表値のみ掲載
 97,Ｐ大海物語４スペシャルＳＣＡ,約1/199.8,約1/40.6,ST 100%,約72%,,https://pachinko-spec.info/spec-detail/24690/,2026-08-21,ST51回+残保留
-104,Ｐ新世紀エヴァンゲリオン１５ 未来への咆哮,約1/319.7,約1/99.4,約70%,約81%,,https://www.p-world.co.jp/machine/database/9509,2026-08-21,ST突入割合59%+時短引戻し等を含む約70%
+104,Ｐ新世紀エヴァンゲリオン１５ 未来への咆哮,約1/319.7,約1/99.4,約70%,約81%,,https://www.p-world.co.jp/machine/database/9509,2026-08-21,ST突入割合59%+時短100回での引戻し等を含む約70%
 127,Ｐフィーバー戦姫絶唱シンフォギア 黄金絶唱Ｎ,1/199.8,約1/7.8,,,,https://www.sankyo-fever.jp/collection/934/,2026-08-21,シンフォギア3黄金絶唱
 495,ＰＡフィーバーパワフルＲ,1/99.9,1/12.0,,,,https://www.p-world.co.jp/machine/database/9984,2026-08-21,PFパワフル2024年
 497,Ｐ北斗の拳強敵ＳＳＰＡ,約1/99.9,約1/45.2,50%,約70%,約95%,https://www.p-world.co.jp/machine/database/9971,2026-08-21,上位はHYPER強敵RUSH
@@ -27,3 +27,26 @@ machine_id,machine_name,normal_odds,right_odds,entry_rate,continuation_rate,uppe
 866,シン・エヴァンゲリオン １２９ ＬＴ ｖｅｒ．,約1/129.8,約1/54.4,約50%,約70%,約91%,https://www.p-world.co.jp/machine/database/10206,2026-08-21,上位はシン・IMPACT RUSH LT
 1009,Ｐデジハネ北斗の拳慈母ＳＳＰＣ,約1/79.9,約1/7.99,ST 100%,,約94%,https://pachiseven.jp/machines/7142/cutout/2,2026-08-21,ST5回;上位LT継続率
 1165,ｅ牙狼１２ＸＸ－ＭＪ,図柄 約1/437,,50%,約76%,,https://www.youtube.com/watch?v=NQoflQTetgo,2026-08-21,大当り確率約1/349;図柄揃い時の極限7500バトル突入率50%
+414,ＰＣＹＢＯＲＧ００９Ｓ３－Ｋ,約1/319.7,約1/99.9→1/17.9,RUSH 100%,約63%,約90%,https://pachinko-spec.info/spec-detail/133698,2026-08-21,加速RUSHから上位ACCEL RUSHへ移行
+538,ＰバイオハザードＲＥ２Ｌ９ＹＺ４,1/199.8,1/45.8,51%,約72%,約87%,https://news.p-world.co.jp/articles/26831/yugitsushin,2026-08-21,上位はHAZARD RUSH XTREME
+710,ＰＡわんわんセレブレーションＡＧＢＤ,1/99.9,1/31.9,約44%,約80%,約90%,https://g-net-ps.com/info/p0314/,2026-08-21,上位はわんわんCELEBRATION
+711,Ｐ中森明菜・歌姫伝説愛ＫＤ－ＮＳ,1/99.9,1/80.8,ST 100%,約65%,,https://pachinko-spec.info/spec-detail/143504/,2026-08-21,ST80回+残保留
+730,Ｐ弾球黙示録カイジ沼５Ｖ２Ａ,1/79.9,約1/69.7,約59%,約80%,,https://www.p-world.co.jp/machine/database/10095,2026-08-21,黙示録モード経由を含むRUSH突入率
+845,Ｐ花の慶次~裂Ｎ２－ＶＣ,1/129.77,約1/49.98,50%,約70%,約91%,https://g-net-ps.com/info/p0363/,2026-08-21,上位は極煌戦MODE
+1005,Ｐフィーバー機動戦士ガンダムユニコーン２,1/319.7,約1/42.0,約70%,約81%,,https://www.sankyo-fever.jp/products/machine_list/pud/spec/,2026-08-21,再来-白き一角獣と黒き獅子-
+1168,ｅ黄門ちゃま９ＨＣ３,図柄 1/399.8,1/97.0,約52%,約50%,約75%,https://1geki.jp/pachinko/e_koumon_jlls/,2026-08-21,大当り確率1/348.5;上位は寿限無RUSH極
+1188,ｅ女神のカフェテラスＪＬＺ,図柄 1/399,1/73,約40%,約75%,,https://www.fujimarukun.co.jp/products/e_megami/,2026-08-21,大当り確率は1/348;TERRACE CHARGE約1/2721
+1195,ＰＡシン・エヴァンゲリオンＹ,1/99.9,1/37.5,約46%,約79%,,https://g-net-ps.com/info/p0453/,2026-08-21,PREMIUM MODEL
+1227,Ｐルパン三世１４Ｌ０ＹＵ１,1/100.1,1/66.7,50%,約63%,約80%,https://g-net-ps.com/info/p0460/,2026-08-21,LTはGOLDEN TIME105
+1233,eガールズ＆パンツァー3LAH1,1/199.8,1/15.3,戦車道約60%,約80%,,https://g-net-ps.com/info/p0472/,2026-08-21,運命の戦車道突破でLT;LT実質突入は約30%
+1343,Ｐラブ嬢３Ｌ２ＹＲ３,1/129.7,約1/39.2,70%,約75%,約90%,https://g-net-ps.com/info/p0337/,2026-08-21,上位はGOLDEN LOVE RUSH
+1356,ＰＡフィーバーからくりサーカス２ＹＦ,1/99.9,運命の一劇 約1/66,約28%,約81%,,https://pachinko-curation.com/57371/,2026-08-21,RUSHは時短125回
+1357,ｅ地獄少女７５００Ｖｅｒ．ＲＨＺ,大当り 1/349,地獄チャレンジ 約1/6,約52%,約77%,,https://www.p-world.co.jp/machine/database/10384,2026-08-21,きくりチャレンジ約1/49;チャージ約1/429
+1359,ＰＡ野生の王国６Ｎ２,1/99.9,1/63.7,ST 100%,,,https://pachinko-curation.com/57836/,2026-08-21,ST50/100/349回;遊タイム搭載
+1466,ｅフィーバーダンベル何キロ持てる２Ｆ,1/149.9,1/97.7,約25%,約73%,,https://g-net-ps.com/info/p0525/,2026-08-21,超マッスルRUSH ST127回
+1470,Ｐ Ｒｅ：ゼロから始めるｓｅａｓｏｎ２ Ａ１０,1/129.9,1/99.9,50%,約70%,,https://pachinko-curation.com/59660/,2026-08-21,129ver.;RUSH120回
+1490,Ｐえとたま２ＳＥ,1/99.9,1/63.4,約35%,約75%,,https://pachinko-curation.com/?p=59747,2026-08-21,甘デジ99Ver.
+1529,ｅリング 最恐領域ＲＨＡ,図柄 約1/399,前半 約1/8／後半 約1/129,約57%,約70%,,https://www.fujimarukun.co.jp/products/e_ring/,2026-08-21,大当り確率1/348;ST前半5回+後半70回
+1580,ｅバイオハザード６ＡＰＮ,約1/159.9,約1/97,約27%,約80%,,https://pachinko-curation.com/59041/,2026-08-21,ノーマルモード値;通常モード選択で突入率が変化
+1624,ｅ Ｒｅ：ゼロｓｅａｓｏｎ２Ｍ１３,1/349.9,1/99.9,55%,約77%,,https://pachinko-curation.com/41239/,2026-08-21,RUSH145回
+1625,ｅとある科学の超電磁砲 ＬＴＲＳＹ,1/169.7,1/86.8,約25%,約77%,,https://1geki.jp/pachinko/e_scirailgun_phasenext/,2026-08-21,PHASE NEXT;LT ST125回
