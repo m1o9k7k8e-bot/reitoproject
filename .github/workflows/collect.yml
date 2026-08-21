@@ -38,7 +38,9 @@ jobs:
 
       - name: Build dashboard
         if: steps.collect.outcome == 'success'
-        run: python build_site.py
+        run: |
+          python build_site.py
+          python analysis_site.py
 
       - name: Save collected data
         if: steps.collect.outcome == 'success'
