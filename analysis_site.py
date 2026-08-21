@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import csv
 import html
-import math
 import sqlite3
 from collections import defaultdict
 from datetime import datetime
@@ -10,6 +10,7 @@ from statistics import mean, pstdev
 
 DATA = Path("data")
 DOCS = Path("docs")
+SPECS = Path("machine_specs.csv")
 
 
 def esc(value):
@@ -37,8 +38,56 @@ def clamp(value, low=0.0, high=100.0):
 def pct_distance(a, b):
     if a is None or b is None:
         return 0.0
-    denom = max(abs(b), 1.0)
-    return abs(a - b) / denom
+    return abs(a - b) / max(abs(b), 1.0)
+
+
+def load_specs():
+    specs = {}
+    if not SPECS.exists():
+        return specs
+    with SPECS.open("r", encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            try:
+                mid = str(int(row.get("machine_id", "")))
+            except (TypeError, ValueError):
+                continue
+            specs[mid] = row
+    return specs
+
+
+def spec_cell(spec):
+    if not spec:
+        return '<span title="公表値を型式照合できていません">未登録</span>'
+
+    lines = []
+    normal = spec.get("normal_odds", "").strip()
+    right = spec.get("right_odds", "").strip()
+    entry = spec.get("entry_rate", "").strip()
+    cont = spec.get("continuation_rate", "").strip()
+    upper = spec.get("upper_rate", "").strip()
+    note = spec.get("note", "").strip()
+    source = spec.get("source_url", "").strip()
+
+    if normal:
+        lines.append(f"<b>通常 {esc(normal)}</b>")
+    if right:
+        lines.append(f"右/ST {esc(right)}")
+    rates = []
+    if entry:
+        rates.append(f"突入 {esc(entry)}")
+    if cont:
+        rates.append(f"継続 {esc(cont)}")
+    if upper:
+        rates.append(f"上位 {esc(upper)}")
+    if rates:
+        lines.append(" / ".join(rates))
+    if note:
+        lines.append(f'<small>{esc(note)}</small>')
+    if source:
+        lines.append(
+            f'<a href="{esc(source)}" target="_blank" rel="noopener noreferrer">出典</a>'
+        )
+    return "<br>".join(lines) if lines else "未登録"
 
 
 def build():
@@ -48,16 +97,19 @@ def build():
         raise SystemExit("Run collector.py and build_site.py first.")
 
     conn = sqlite3.connect(db)
-    records = conn.execute("""
+    records = conn.execute(
+        """
         SELECT record_date,machine_number,machine_id,machine_name,flags,
                big_hits,kakuhen_jitan,max_balls
         FROM daily_records
         ORDER BY record_date,machine_number
-    """).fetchall()
+        """
+    ).fetchall()
     conn.close()
-
     if not records:
         return
+
+    specs = load_specs()
 
     by_day = defaultdict(list)
     for r in records:
@@ -74,17 +126,15 @@ def build():
     for day in active_dates:
         weekday_rows[weekday_jp(day)].extend(by_day[day])
 
-    weekday_order = ["月", "火", "水", "木", "金", "土", "日"]
     weekday_table = []
-    for wd in weekday_order:
+    for wd in ["月", "火", "水", "木", "金", "土", "日"]:
         rows = weekday_rows.get(wd, [])
         if not rows:
             continue
-        dates = {r[0] for r in rows}
         weekday_table.append(
             "<tr>"
             f"<td>{wd}</td>"
-            f"<td>{len(dates)}</td>"
+            f"<td>{len({r[0] for r in rows})}</td>"
             f"<td>{fmt(safe_mean([r[5] for r in rows]))}</td>"
             f"<td>{fmt(safe_mean([r[7] for r in rows]))}</td>"
             "</tr>"
@@ -93,25 +143,22 @@ def build():
     daily_metrics = []
     for day in active_dates:
         rows = by_day[day]
-        daily_metrics.append({
-            "date": day,
-            "weekday": weekday_jp(day),
-            "avg_hits": safe_mean([r[5] for r in rows]),
-            "avg_balls": safe_mean([r[7] for r in rows]),
-            "units": len(rows),
-        })
+        daily_metrics.append(
+            {
+                "date": day,
+                "weekday": weekday_jp(day),
+                "avg_balls": safe_mean([r[7] for r in rows]),
+            }
+        )
 
-    # Walk-forward validation of store-wide weekday effect only.
-    # This evaluates whether same-weekday aggregate history has descriptive
-    # persistence for the store-wide daily average. It never ranks individual
-    # machines by future outcome.
     bt = []
     for i, cur in enumerate(daily_metrics):
         if i < 3 or cur["avg_balls"] is None:
             continue
         past = daily_metrics[:i]
         past_same = [
-            x["avg_balls"] for x in past
+            x["avg_balls"]
+            for x in past
             if x["weekday"] == cur["weekday"] and x["avg_balls"] is not None
         ]
         past_all = [x["avg_balls"] for x in past if x["avg_balls"] is not None]
@@ -119,14 +166,16 @@ def build():
             continue
         weekday_pred = safe_mean(past_same) if past_same else safe_mean(past_all)
         baseline_pred = safe_mean(past_all)
-        bt.append({
-            "date": cur["date"],
-            "actual": cur["avg_balls"],
-            "weekday_pred": weekday_pred,
-            "baseline_pred": baseline_pred,
-            "weekday_abs_error": abs(cur["avg_balls"] - weekday_pred),
-            "baseline_abs_error": abs(cur["avg_balls"] - baseline_pred),
-        })
+        bt.append(
+            {
+                "date": cur["date"],
+                "actual": cur["avg_balls"],
+                "weekday_pred": weekday_pred,
+                "baseline_pred": baseline_pred,
+                "weekday_abs_error": abs(cur["avg_balls"] - weekday_pred),
+                "baseline_abs_error": abs(cur["avg_balls"] - baseline_pred),
+            }
+        )
 
     weekday_mae = safe_mean([x["weekday_abs_error"] for x in bt])
     baseline_mae = safe_mean([x["baseline_abs_error"] for x in bt])
@@ -152,13 +201,6 @@ def build():
     except Exception:
         pass
 
-    # -------------------------------------------------
-    # Individual-machine historical feature index.
-    #
-    # This is intentionally NOT a forecast or a win-probability score.
-    # Higher values mean that the recent historical pattern is more unusual
-    # relative to that machine's own longer history / weekday history.
-    # -------------------------------------------------
     by_machine = defaultdict(list)
     for r in records:
         by_machine[str(r[1])].append(r)
@@ -199,33 +241,30 @@ def build():
             if m:
                 cv = pstdev(ball_vals) / abs(m)
 
-        recent_shift = pct_distance(avg7_balls, avg30_balls)
-        weekday_shift = pct_distance(wd_balls, avg30_balls)
-        hit_shift = pct_distance(avg7_hits, avg30_hits)
-        variability = min(cv, 2.0) / 2.0
-        sufficiency = min(len(usable), 30) / 30.0
-
         score = clamp(
-            100 * (
-                0.35 * min(recent_shift, 1.0)
-                + 0.20 * min(weekday_shift, 1.0)
-                + 0.20 * min(hit_shift, 1.0)
-                + 0.15 * variability
-                + 0.10 * sufficiency
+            100
+            * (
+                0.35 * min(pct_distance(avg7_balls, avg30_balls), 1.0)
+                + 0.20 * min(pct_distance(wd_balls, avg30_balls), 1.0)
+                + 0.20 * min(pct_distance(avg7_hits, avg30_hits), 1.0)
+                + 0.15 * (min(cv, 2.0) / 2.0)
+                + 0.10 * (min(len(usable), 30) / 30.0)
             )
         )
 
-        machine_features.append({
-            "number": num,
-            "machine": latest_rec[3],
-            "days": len(usable),
-            "avg7_balls": avg7_balls,
-            "avg30_balls": avg30_balls,
-            "weekday_balls": wd_balls,
-            "avg7_hits": avg7_hits,
-            "avg30_hits": avg30_hits,
-            "score": round(score, 1),
-        })
+        machine_features.append(
+            {
+                "number": num,
+                "machine_id": str(current_mid),
+                "machine": latest_rec[3],
+                "days": len(usable),
+                "avg7_balls": avg7_balls,
+                "avg30_balls": avg30_balls,
+                "weekday_balls": wd_balls,
+                "avg7_hits": avg7_hits,
+                "score": round(score, 1),
+            }
+        )
 
     def machine_sort_key(item):
         try:
@@ -235,10 +274,14 @@ def build():
 
     machine_features.sort(key=machine_sort_key)
 
+    current_types = {x["machine_id"] for x in machine_features}
+    registered_types = len(current_types & set(specs))
+
     machine_rows = "\n".join(
         "<tr>"
         f"<td>{esc(x['number'])}</td>"
         f"<td>{esc(x['machine'])}</td>"
+        f"<td>{spec_cell(specs.get(x['machine_id']))}</td>"
         f"<td data-sort=\"{x['days']}\">{x['days']}</td>"
         f"<td data-sort=\"{'' if x['avg7_balls'] is None else x['avg7_balls']}\">{fmt(x['avg7_balls'])}</td>"
         f"<td data-sort=\"{'' if x['avg30_balls'] is None else x['avg30_balls']}\">{fmt(x['avg30_balls'])}</td>"
@@ -247,39 +290,39 @@ def build():
         f"<td data-sort=\"{x['score']}\"><b>{x['score']:.1f}</b></td>"
         "</tr>"
         for x in machine_features
-    ) or '<tr><td colspan="8">台別履歴を計算できるデータがありません</td></tr>'
+    ) or '<tr><td colspan="9">台別履歴を計算できるデータがありません</td></tr>'
 
     section = f"""
 <section id="historical-validation" style="margin-top:32px">
 <h2>店舗全体の履歴分析・再現性検証</h2>
 <p class="note">
-このセクションは、公開済みの過去データを使って店舗全体の曜日差やデータ安定性を検証するものです。
-個別台の当選確率、期待値、翌日の推奨台を示すものではありません。
+公開済みの過去データを使った履歴分析です。公表スペックは型式ごとの仕様値で、店舗の実績値とは別物です。
+履歴特徴スコアも勝率・期待値・翌日の当たりやすさを示すものではありません。
 </p>
 <div class="cards">
   <div class="card"><div>統計採用日</div><div class="big">{len(active_dates)}</div></div>
   <div class="card"><div>休業/未更新候補</div><div class="big">{len(inactive_dates)}</div></div>
   <div class="card"><div>入替検出</div><div class="big">{changes}</div></div>
-  <div class="card"><div>検証日数</div><div class="big">{len(bt)}</div></div>
+  <div class="card"><div>公表スペック登録</div><div class="big">{registered_types}/{len(current_types)}</div></div>
 </div>
 
-<h3>台別・履歴特徴スコア</h3>
+<h3>台別・履歴特徴スコア ＋ 公表スペック</h3>
 <p class="note">
-履歴特徴スコアは0〜100で、直近7日と30日の差、同曜日平均との差、大当り履歴の変化、変動幅、データ日数をまとめた「過去履歴の特徴度」です。
-高いほど最近の履歴がその台自身の長期履歴から大きく変化していることを示します。勝率や期待値の推定ではありません。
-表の見出しをタップすると、その列で並べ替えできます。
+「公表スペック」には型式を照合できた機種だけ、通常時確率・右打ち/ST中確率・RUSH/ST突入率・継続率を表示します。
+推測値は使わず、未確認の型式は「未登録」と表示します。出典リンクから元データを確認できます。
 </p>
 <div class="wrap" style="max-height:65vh">
 <table id="featureTable">
 <thead><tr>
 <th onclick="sortFeatureTable(0,false)">台番号 ↕</th>
 <th onclick="sortFeatureTable(1,false)">機種 ↕</th>
-<th onclick="sortFeatureTable(2,true)">採用日数 ↕</th>
-<th onclick="sortFeatureTable(3,true)">7日平均持玉 ↕</th>
-<th onclick="sortFeatureTable(4,true)">30日平均持玉 ↕</th>
-<th onclick="sortFeatureTable(5,true)">{latest_weekday}曜平均持玉 ↕</th>
-<th onclick="sortFeatureTable(6,true)">7日平均大当り ↕</th>
-<th onclick="sortFeatureTable(7,true)">履歴特徴スコア ↕</th>
+<th>公表スペック</th>
+<th onclick="sortFeatureTable(3,true)">採用日数 ↕</th>
+<th onclick="sortFeatureTable(4,true)">7日平均持玉 ↕</th>
+<th onclick="sortFeatureTable(5,true)">30日平均持玉 ↕</th>
+<th onclick="sortFeatureTable(6,true)">{latest_weekday}曜平均持玉 ↕</th>
+<th onclick="sortFeatureTable(7,true)">7日平均大当り ↕</th>
+<th onclick="sortFeatureTable(8,true)">履歴特徴スコア ↕</th>
 </tr></thead>
 <tbody>{machine_rows}</tbody>
 </table>
@@ -295,10 +338,11 @@ def build():
 
 <h3>ウォークフォワード再現性検証</h3>
 <p class="note">
-各日について、その日より前のデータだけを使い「同じ曜日の店舗全体平均」を推定し、
-単純な全曜日平均と誤差を比較します。未来データは計算に使いません。
+各日について、その日より前のデータだけを使い「同じ曜日の店舗全体平均」を推定し、単純な全曜日平均と誤差を比較します。
+未来データは計算に使いません。
 </p>
 <div class="cards">
+  <div class="card"><div>検証日数</div><div class="big">{len(bt)}</div></div>
   <div class="card"><div>同曜日モデル MAE</div><div class="big">{fmt(weekday_mae)}</div></div>
   <div class="card"><div>単純平均 MAE</div><div class="big">{fmt(baseline_mae)}</div></div>
   <div class="card"><div>誤差改善率</div><div class="big">{fmt(improvement)}%</div></div>
@@ -323,8 +367,7 @@ function sortFeatureTable(col, numeric) {{
     let av = a.cells[col].dataset.sort ?? a.cells[col].innerText.trim();
     let bv = b.cells[col].dataset.sort ?? b.cells[col].innerText.trim();
     if (numeric) {{
-      av = parseFloat(av);
-      bv = parseFloat(bv);
+      av = parseFloat(av); bv = parseFloat(bv);
       if (Number.isNaN(av)) av = -Infinity;
       if (Number.isNaN(bv)) bv = -Infinity;
       return asc ? av-bv : bv-av;
@@ -341,12 +384,11 @@ function sortFeatureTable(col, numeric) {{
     if marker in page:
         start = page.index(marker)
         end = page.index("</section>", start) + len("</section>")
-        # Remove a previous feature-table sort script if present.
-        script_marker = '<script>\nlet featureSortDir = {}'
         after = page[end:]
-        if script_marker in after[:2500]:
+        script_marker = "<script>\nlet featureSortDir = {}"
+        if script_marker in after[:3000]:
             s = after.index(script_marker)
-            e = after.index('</script>', s) + len('</script>')
+            e = after.index("</script>", s) + len("</script>")
             after = after[:s] + after[e:]
         page = page[:start] + section + after
     else:
