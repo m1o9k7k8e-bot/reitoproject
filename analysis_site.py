@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import html
+import math
 import sqlite3
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from statistics import mean
+from statistics import mean, pstdev
 
 DATA = Path("data")
 DOCS = Path("docs")
@@ -27,6 +28,17 @@ def safe_mean(values):
 
 def fmt(value, digits=1):
     return "—" if value is None else f"{value:.{digits}f}"
+
+
+def clamp(value, low=0.0, high=100.0):
+    return max(low, min(high, value))
+
+
+def pct_distance(a, b):
+    if a is None or b is None:
+        return 0.0
+    denom = max(abs(b), 1.0)
+    return abs(a - b) / denom
 
 
 def build():
@@ -90,14 +102,18 @@ def build():
         })
 
     # Walk-forward validation of store-wide weekday effect only.
-    # This evaluates whether same-weekday aggregate history has predictive
-    # value for the store-wide daily average. It never ranks individual machines.
+    # This evaluates whether same-weekday aggregate history has descriptive
+    # persistence for the store-wide daily average. It never ranks individual
+    # machines by future outcome.
     bt = []
     for i, cur in enumerate(daily_metrics):
         if i < 3 or cur["avg_balls"] is None:
             continue
         past = daily_metrics[:i]
-        past_same = [x["avg_balls"] for x in past if x["weekday"] == cur["weekday"] and x["avg_balls"] is not None]
+        past_same = [
+            x["avg_balls"] for x in past
+            if x["weekday"] == cur["weekday"] and x["avg_balls"] is not None
+        ]
         past_all = [x["avg_balls"] for x in past if x["avg_balls"] is not None]
         if not past_all:
             continue
@@ -136,6 +152,103 @@ def build():
     except Exception:
         pass
 
+    # -------------------------------------------------
+    # Individual-machine historical feature index.
+    #
+    # This is intentionally NOT a forecast or a win-probability score.
+    # Higher values mean that the recent historical pattern is more unusual
+    # relative to that machine's own longer history / weekday history.
+    # -------------------------------------------------
+    by_machine = defaultdict(list)
+    for r in records:
+        by_machine[str(r[1])].append(r)
+
+    latest_date = max(by_day)
+    latest_weekday = weekday_jp(latest_date)
+    machine_features = []
+
+    for num, recs in by_machine.items():
+        recs = sorted(recs, key=lambda x: x[0])
+        latest_rec = recs[-1]
+        current_mid = latest_rec[2]
+
+        generation = []
+        for rr in reversed(recs):
+            if rr[2] != current_mid:
+                break
+            generation.append(rr)
+        generation.reverse()
+        usable = [rr for rr in generation if rr[0] not in inactive_dates]
+        if not usable:
+            continue
+
+        last7 = usable[-7:]
+        last30 = usable[-30:]
+        same_wd = [rr for rr in usable if weekday_jp(rr[0]) == latest_weekday]
+
+        avg7_balls = safe_mean([rr[7] for rr in last7])
+        avg30_balls = safe_mean([rr[7] for rr in last30])
+        wd_balls = safe_mean([rr[7] for rr in same_wd])
+        avg7_hits = safe_mean([rr[5] for rr in last7])
+        avg30_hits = safe_mean([rr[5] for rr in last30])
+
+        ball_vals = [rr[7] for rr in last30 if rr[7] is not None]
+        cv = 0.0
+        if len(ball_vals) >= 2:
+            m = mean(ball_vals)
+            if m:
+                cv = pstdev(ball_vals) / abs(m)
+
+        recent_shift = pct_distance(avg7_balls, avg30_balls)
+        weekday_shift = pct_distance(wd_balls, avg30_balls)
+        hit_shift = pct_distance(avg7_hits, avg30_hits)
+        variability = min(cv, 2.0) / 2.0
+        sufficiency = min(len(usable), 30) / 30.0
+
+        score = clamp(
+            100 * (
+                0.35 * min(recent_shift, 1.0)
+                + 0.20 * min(weekday_shift, 1.0)
+                + 0.20 * min(hit_shift, 1.0)
+                + 0.15 * variability
+                + 0.10 * sufficiency
+            )
+        )
+
+        machine_features.append({
+            "number": num,
+            "machine": latest_rec[3],
+            "days": len(usable),
+            "avg7_balls": avg7_balls,
+            "avg30_balls": avg30_balls,
+            "weekday_balls": wd_balls,
+            "avg7_hits": avg7_hits,
+            "avg30_hits": avg30_hits,
+            "score": round(score, 1),
+        })
+
+    def machine_sort_key(item):
+        try:
+            return (0, int(item["number"]))
+        except Exception:
+            return (1, item["number"])
+
+    machine_features.sort(key=machine_sort_key)
+
+    machine_rows = "\n".join(
+        "<tr>"
+        f"<td>{esc(x['number'])}</td>"
+        f"<td>{esc(x['machine'])}</td>"
+        f"<td data-sort=\"{x['days']}\">{x['days']}</td>"
+        f"<td data-sort=\"{'' if x['avg7_balls'] is None else x['avg7_balls']}\">{fmt(x['avg7_balls'])}</td>"
+        f"<td data-sort=\"{'' if x['avg30_balls'] is None else x['avg30_balls']}\">{fmt(x['avg30_balls'])}</td>"
+        f"<td data-sort=\"{'' if x['weekday_balls'] is None else x['weekday_balls']}\">{fmt(x['weekday_balls'])}</td>"
+        f"<td data-sort=\"{'' if x['avg7_hits'] is None else x['avg7_hits']}\">{fmt(x['avg7_hits'])}</td>"
+        f"<td data-sort=\"{x['score']}\"><b>{x['score']:.1f}</b></td>"
+        "</tr>"
+        for x in machine_features
+    ) or '<tr><td colspan="8">台別履歴を計算できるデータがありません</td></tr>'
+
     section = f"""
 <section id="historical-validation" style="margin-top:32px">
 <h2>店舗全体の履歴分析・再現性検証</h2>
@@ -148,6 +261,28 @@ def build():
   <div class="card"><div>休業/未更新候補</div><div class="big">{len(inactive_dates)}</div></div>
   <div class="card"><div>入替検出</div><div class="big">{changes}</div></div>
   <div class="card"><div>検証日数</div><div class="big">{len(bt)}</div></div>
+</div>
+
+<h3>台別・履歴特徴スコア</h3>
+<p class="note">
+履歴特徴スコアは0〜100で、直近7日と30日の差、同曜日平均との差、大当り履歴の変化、変動幅、データ日数をまとめた「過去履歴の特徴度」です。
+高いほど最近の履歴がその台自身の長期履歴から大きく変化していることを示します。勝率や期待値の推定ではありません。
+表の見出しをタップすると、その列で並べ替えできます。
+</p>
+<div class="wrap" style="max-height:65vh">
+<table id="featureTable">
+<thead><tr>
+<th onclick="sortFeatureTable(0,false)">台番号 ↕</th>
+<th onclick="sortFeatureTable(1,false)">機種 ↕</th>
+<th onclick="sortFeatureTable(2,true)">採用日数 ↕</th>
+<th onclick="sortFeatureTable(3,true)">7日平均持玉 ↕</th>
+<th onclick="sortFeatureTable(4,true)">30日平均持玉 ↕</th>
+<th onclick="sortFeatureTable(5,true)">{latest_weekday}曜平均持玉 ↕</th>
+<th onclick="sortFeatureTable(6,true)">7日平均大当り ↕</th>
+<th onclick="sortFeatureTable(7,true)">履歴特徴スコア ↕</th>
+</tr></thead>
+<tbody>{machine_rows}</tbody>
+</table>
 </div>
 
 <h3>曜日別・店舗全体平均</h3>
@@ -175,6 +310,30 @@ def build():
 </table>
 </div>
 </section>
+<script>
+let featureSortDir = {{}};
+function sortFeatureTable(col, numeric) {{
+  const table = document.getElementById('featureTable');
+  if (!table) return;
+  const body = table.tBodies[0];
+  const rows = Array.from(body.rows);
+  const asc = !(featureSortDir[col] ?? false);
+  featureSortDir[col] = asc;
+  rows.sort((a,b) => {{
+    let av = a.cells[col].dataset.sort ?? a.cells[col].innerText.trim();
+    let bv = b.cells[col].dataset.sort ?? b.cells[col].innerText.trim();
+    if (numeric) {{
+      av = parseFloat(av);
+      bv = parseFloat(bv);
+      if (Number.isNaN(av)) av = -Infinity;
+      if (Number.isNaN(bv)) bv = -Infinity;
+      return asc ? av-bv : bv-av;
+    }}
+    return asc ? av.localeCompare(bv, 'ja', {{numeric:true}}) : bv.localeCompare(av, 'ja', {{numeric:true}});
+  }});
+  rows.forEach(r => body.appendChild(r));
+}}
+</script>
 """
 
     page = page_path.read_text(encoding="utf-8")
@@ -182,7 +341,14 @@ def build():
     if marker in page:
         start = page.index(marker)
         end = page.index("</section>", start) + len("</section>")
-        page = page[:start] + section + page[end:]
+        # Remove a previous feature-table sort script if present.
+        script_marker = '<script>\nlet featureSortDir = {}'
+        after = page[end:]
+        if script_marker in after[:2500]:
+            s = after.index(script_marker)
+            e = after.index('</script>', s) + len('</script>')
+            after = after[:s] + after[e:]
+        page = page[:start] + section + after
     else:
         page = page.replace("</main>", section + "\n</main>", 1)
     page_path.write_text(page, encoding="utf-8")
