@@ -1,0 +1,96 @@
+name: Analyze saved hit gaps
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - analyze_history_gaps.signal
+
+permissions:
+  contents: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Analyze saved database only
+        run: |
+          python - <<'PY'
+          import csv, re, sqlite3
+          from collections import defaultdict
+          from pathlib import Path
+          from statistics import mean, median
+
+          db = Path('data/reito.sqlite')
+          conn = sqlite3.connect(db)
+          rows = conn.execute('''
+            SELECT record_date,machine_number,machine_id,machine_name,big_hits,kakuhen_jitan,max_balls
+            FROM daily_records ORDER BY record_date,machine_number
+          ''').fetchall()
+          conn.close()
+
+          by_day=defaultdict(list)
+          for r in rows: by_day[r[0]].append(r)
+          inactive={d for d,rs in by_day.items() if rs and all(x[4] is None and x[5] is None and x[6] is None for x in rs)}
+
+          specs={}
+          with open('machine_specs.csv',encoding='utf-8-sig',newline='') as f:
+            for s in csv.DictReader(f):
+              try: specs[str(int(s['machine_id']))]=s
+              except: pass
+
+          by_num=defaultdict(list)
+          for r in rows: by_num[str(r[1])].append(r)
+          out=[]
+          for num,recs in by_num.items():
+            recs=sorted(recs,key=lambda x:x[0])
+            latest=recs[-1]; mid=latest[2]
+            gen=[]
+            for r in reversed(recs):
+              if r[2]!=mid: break
+              gen.append(r)
+            gen.reverse()
+            usable=[r for r in gen if r[0] not in inactive and r[4] is not None]
+            if not usable: continue
+            hits=[int(r[4]) for r in usable]
+            zero=sum(x==0 for x in hits)
+            cur=0
+            for x in reversed(hits):
+              if x==0: cur+=1
+              else: break
+            longest=run=0
+            for x in hits:
+              if x==0:
+                run+=1; longest=max(longest,run)
+              else: run=0
+            spec=specs.get(str(mid),{})
+            normal=(spec.get('normal_odds') or '').strip()
+            m=re.search(r'1\s*/\s*([0-9]+(?:\.[0-9]+)?)',normal)
+            denom=float(m.group(1)) if m else None
+            out.append({
+              'machine_number':num,'machine_id':mid,'machine_name':latest[3],
+              'normal_odds':normal,'denominator': '' if denom is None else denom,
+              'observed_days':len(hits),'zero_days':zero,'zero_day_rate':round(100*zero/len(hits),1),
+              'current_zero_streak':cur,'longest_zero_streak':longest,
+              'total_big_hits':sum(hits),'mean_big_hits':round(mean(hits),2),'median_big_hits':median(hits),
+              'first_date':usable[0][0],'last_date':usable[-1][0]
+            })
+          out.sort(key=lambda x:(-x['current_zero_streak'],-x['zero_day_rate'],int(x['machine_number'])))
+          path=Path('data/history_gap_summary.csv')
+          with path.open('w',encoding='utf-8-sig',newline='') as f:
+            w=csv.DictWriter(f,fieldnames=list(out[0])); w.writeheader(); w.writerows(out)
+          print('rows',len(out),'inactive_dates',sorted(inactive))
+          PY
+      - name: Save summary
+        run: |
+          git config user.name "reito-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/history_gap_summary.csv
+          git diff --cached --quiet || git commit -m "Add saved-history gap summary"
+          git push
