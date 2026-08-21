@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import html
+import math
 import sqlite3
 from collections import defaultdict
 from pathlib import Path
-from statistics import median
+from statistics import mean, median, pstdev
 
 DATA = Path("data")
 DOCS = Path("docs")
@@ -12,6 +13,33 @@ DOCS = Path("docs")
 
 def esc(value):
     return html.escape("" if value is None else str(value))
+
+
+def wilson_interval(successes: int, total: int, z: float = 1.96):
+    """Wilson 95% interval for an observed day-level binary proportion."""
+    if total <= 0:
+        return None, None
+    p = successes / total
+    z2 = z * z
+    denom = 1 + z2 / total
+    center = (p + z2 / (2 * total)) / denom
+    margin = z * math.sqrt((p * (1 - p) / total) + (z2 / (4 * total * total))) / denom
+    return 100.0 * max(0.0, center - margin), 100.0 * min(1.0, center + margin)
+
+
+def percentile(values, p: float):
+    vals = sorted(values)
+    if not vals:
+        return None
+    if len(vals) == 1:
+        return float(vals[0])
+    pos = (len(vals) - 1) * p
+    lo = int(math.floor(pos))
+    hi = int(math.ceil(pos))
+    if lo == hi:
+        return float(vals[lo])
+    weight = pos - lo
+    return vals[lo] * (1.0 - weight) + vals[hi] * weight
 
 
 def build():
@@ -48,6 +76,8 @@ def build():
         by_machine[str(r[1])].append(r)
 
     rows_out = []
+    model_units = defaultdict(list)
+
     for num, recs in by_machine.items():
         recs = sorted(recs, key=lambda x: x[0])
         latest = recs[-1]
@@ -67,21 +97,28 @@ def build():
         hits = [int(r[4]) for r in usable]
         hit_days = sum(1 for x in hits if x > 0)
         hit_day_rate = 100.0 * hit_days / len(hits)
+        ci_low, ci_high = wilson_interval(hit_days, len(hits))
         recent = hits[-7:]
         recent_hit_days = sum(1 for x in recent if x > 0)
 
         rows_out.append(
             {
                 "number": num,
+                "machine_id": current_mid,
                 "machine": latest[3],
                 "days": len(hits),
                 "hit_days": hit_days,
                 "hit_day_rate": hit_day_rate,
+                "ci_low": ci_low,
+                "ci_high": ci_high,
                 "median_hits": median(hits),
                 "recent_n": len(recent),
                 "recent_hit_days": recent_hit_days,
             }
         )
+
+        model_key = (str(current_mid), latest[3])
+        model_units[model_key].append({"number": num, "hits": hits})
 
     def sort_key(item):
         try:
@@ -96,12 +133,64 @@ def build():
         f"<td>{esc(x['number'])}</td>"
         f"<td>{esc(x['machine'])}</td>"
         f"<td>{x['days']}</td>"
-        f"<td>{x['hit_days']}/{x['days']} ({x['hit_day_rate']:.1f}%)</td>"
+        f"<td>{x['hit_days']}/{x['days']} ({x['hit_day_rate']:.1f}%)"
+        f"<br><small>95%区間 {x['ci_low']:.1f}–{x['ci_high']:.1f}%</small></td>"
         f"<td>{x['median_hits']:.1f}</td>"
         f"<td>{x['recent_hit_days']}/{x['recent_n']}</td>"
         "</tr>"
         for x in rows_out
     ) or '<tr><td colspan="6">観測実績を計算できるデータがありません</td></tr>'
+
+    model_rows_data = []
+    for (mid, machine_name), units in model_units.items():
+        all_hits = [value for unit in units for value in unit["hits"]]
+        if not all_hits:
+            continue
+        hit_days = sum(1 for x in all_hits if x > 0)
+        rate = 100.0 * hit_days / len(all_hits)
+        ci_low, ci_high = wilson_interval(hit_days, len(all_hits))
+        q1 = percentile(all_hits, 0.25)
+        q3 = percentile(all_hits, 0.75)
+        unit_means = [mean(unit["hits"]) for unit in units if unit["hits"]]
+        unit_cv = None
+        if len(unit_means) >= 2:
+            m = mean(unit_means)
+            if m != 0:
+                unit_cv = 100.0 * pstdev(unit_means) / abs(m)
+
+        model_rows_data.append(
+            {
+                "machine": machine_name,
+                "units": len(units),
+                "unit_days": len(all_hits),
+                "hit_days": hit_days,
+                "rate": rate,
+                "ci_low": ci_low,
+                "ci_high": ci_high,
+                "mean_hits": mean(all_hits),
+                "median_hits": median(all_hits),
+                "q1": q1,
+                "q3": q3,
+                "unit_cv": unit_cv,
+            }
+        )
+
+    model_rows_data.sort(key=lambda x: (-x["units"], x["machine"]))
+
+    model_table_rows = "\n".join(
+        "<tr>"
+        f"<td>{esc(x['machine'])}</td>"
+        f"<td>{x['units']}</td>"
+        f"<td>{x['unit_days']}</td>"
+        f"<td>{x['hit_days']}/{x['unit_days']} ({x['rate']:.1f}%)"
+        f"<br><small>95%区間 {x['ci_low']:.1f}–{x['ci_high']:.1f}%</small></td>"
+        f"<td>{x['mean_hits']:.1f}</td>"
+        f"<td>{x['median_hits']:.1f}</td>"
+        f"<td>{x['q1']:.1f}–{x['q3']:.1f}</td>"
+        f"<td>{'—' if x['unit_cv'] is None else f'{x[\"unit_cv\"]:.1f}%'}" + "</td>"
+        "</tr>"
+        for x in model_rows_data
+    ) or '<tr><td colspan="8">機種別統計を計算できるデータがありません</td></tr>'
 
     section = f"""
 <section id="observed-history" style="margin-top:32px">
@@ -109,8 +198,9 @@ def build():
 <p class="note">
 保存済みの日次実績だけを集計した記述統計です。「大当り記録あり日率」は、その台のデータが取得できた日のうち
 大当り回数が1回以上だった日の割合で、1万円以内の初当たり確率や翌日の当たりやすさを表すものではありません。
+95%区間はこの「観測日率」に対するWilson区間で、通常時1回転ごとの大当り確率の信頼区間ではありません。
 レイト詳細画面には累計スタートの表示枠がありますが、保存済みHTMLでは数値本体が後読み込みのため残っておらず、
-過去の通常回転数を正確に復元できません。このため大当り回数から初当たり確率を逆算していません。
+過去の通常回転数を正確に復元できません。このため大当り回数から公表確率との差を検定していません。
 </p>
 <div class="wrap" style="max-height:65vh">
 <table id="observedTable">
@@ -123,6 +213,28 @@ def build():
 <th>直近最大7日・記録あり日</th>
 </tr></thead>
 <tbody>{table_rows}</tbody>
+</table>
+</div>
+
+<h3>機種別・実績ばらつき統計</h3>
+<p class="note">
+現在設置されている同一機種の台について、現行設置期間の「台×日」をまとめています。
+IQRは1日大当り回数の中央50%範囲です。「台別平均CV」は同一機種の各台で計算した1日平均大当り回数の
+ばらつきを平均値に対する割合で示した記述指標です。稼働量や通常回転数が不明なので、設定・釘・勝率・期待値の差とは解釈できません。
+</p>
+<div class="wrap" style="max-height:65vh">
+<table id="modelObservedTable">
+<thead><tr>
+<th>機種</th>
+<th>現在台数</th>
+<th>観測台日</th>
+<th>大当り記録あり台日</th>
+<th>1日平均</th>
+<th>1日中央値</th>
+<th>IQR</th>
+<th>台別平均CV</th>
+</tr></thead>
+<tbody>{model_table_rows}</tbody>
 </table>
 </div>
 </section>
