@@ -48,6 +48,7 @@ jobs:
           python build_site.py
           python analysis_site.py
           python observed_history.py
+          python manual_review_candidates.py
 
       - name: Save collected data
         if: steps.collect.outcome == 'success'
