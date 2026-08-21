@@ -36,6 +36,10 @@ jobs:
         continue-on-error: true
         run: python collector.py --out data --sleep 0.35
 
+      - name: Enrich cumulative start data
+        if: steps.collect.outcome == 'success'
+        run: python enrich_total_start.py
+
       - name: Build dashboard
         if: steps.collect.outcome == 'success'
         run: |
