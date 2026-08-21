@@ -2,14 +2,6 @@ name: Collect Reito pachinko data
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "machine_specs.csv"
-      - "machine_specs_extra.csv"
-      - "merge_machine_specs.py"
-      - ".github/workflows/collect.yml"
   schedule:
     # JST 23:30
     # GitHub Actions cron is UTC.
@@ -36,35 +28,16 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Rebuild from stored data on push
-        if: github.event_name == 'push'
-        run: |
-          python merge_machine_specs.py
-          python export_current_models.py
-          python build_site.py
-          python analysis_site.py
-
-      - name: Save rebuilt dashboard
-        if: github.event_name == 'push'
-        run: |
-          git config user.name "reito-data-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add machine_specs.csv data/current_models.csv docs
-          git diff --cached --quiet || git commit -m "Update pachinko data"
-          git push
-
       - name: Install packages
-        if: github.event_name != 'push'
         run: pip install -r requirements.txt
 
       - name: Collect Reito data
-        if: github.event_name != 'push'
         id: collect
         continue-on-error: true
         run: python collector.py --out data --sleep 0.35
 
       - name: Build dashboard
-        if: github.event_name != 'push' && steps.collect.outcome == 'success'
+        if: steps.collect.outcome == 'success'
         run: |
           python merge_machine_specs.py
           python export_current_models.py
@@ -72,7 +45,7 @@ jobs:
           python analysis_site.py
 
       - name: Save collected data
-        if: github.event_name != 'push' && steps.collect.outcome == 'success'
+        if: steps.collect.outcome == 'success'
         run: |
           git config user.name "reito-data-bot"
           git config user.email "actions@users.noreply.github.com"
@@ -81,7 +54,7 @@ jobs:
           git push
 
       - name: Fail workflow if collection failed
-        if: github.event_name != 'push' && steps.collect.outcome != 'success'
+        if: steps.collect.outcome != 'success'
         run: |
           echo "Collection failed or snapshot quality was insufficient."
           exit 1
