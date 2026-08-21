@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import html
+import re
 import sqlite3
 from collections import defaultdict
 from datetime import datetime
@@ -88,6 +89,45 @@ def spec_cell(spec):
             f'<a href="{esc(source)}" target="_blank" rel="noopener noreferrer">出典</a>'
         )
     return "<br>".join(lines) if lines else "未登録"
+
+
+def normal_denominator(spec):
+    """Extract the first published 1/N denominator from the normal-odds text."""
+    if not spec:
+        return None
+    text = spec.get("normal_odds", "").strip()
+    m = re.search(r"1\s*/\s*([0-9]+(?:\.[0-9]+)?)", text)
+    if not m:
+        return None
+    try:
+        value = float(m.group(1))
+    except ValueError:
+        return None
+    return value if value > 1 else None
+
+
+def hit_probability(denominator, spins):
+    if denominator is None or spins <= 0:
+        return None
+    return 100.0 * (1.0 - (1.0 - 1.0 / denominator) ** spins)
+
+
+def budget_probability_cell(spec):
+    """Neutral theoretical first-hit probabilities for a fixed 10,000-yen budget.
+
+    No actual machine rotation rate is inferred. Three illustrative rotation-rate
+    scenarios are shown instead: 12, 15, and 18 spins per 1,000 yen.
+    """
+    denominator = normal_denominator(spec)
+    if denominator is None:
+        return '<span title="通常時の固定1/N確率として算出できない機種です">算出対象外</span>'
+
+    scenarios = []
+    for spins_per_1000 in (12, 15, 18):
+        spins = spins_per_1000 * 10
+        prob = hit_probability(denominator, spins)
+        scenarios.append(f"{spins_per_1000}回/k: {prob:.1f}%")
+    return "<br>".join(scenarios)
 
 
 def build():
@@ -282,6 +322,7 @@ def build():
         f"<td>{esc(x['number'])}</td>"
         f"<td>{esc(x['machine'])}</td>"
         f"<td>{spec_cell(specs.get(x['machine_id']))}</td>"
+        f"<td>{budget_probability_cell(specs.get(x['machine_id']))}</td>"
         f"<td data-sort=\"{x['days']}\">{x['days']}</td>"
         f"<td data-sort=\"{'' if x['avg7_balls'] is None else x['avg7_balls']}\">{fmt(x['avg7_balls'])}</td>"
         f"<td data-sort=\"{'' if x['avg30_balls'] is None else x['avg30_balls']}\">{fmt(x['avg30_balls'])}</td>"
@@ -290,7 +331,7 @@ def build():
         f"<td data-sort=\"{x['score']}\"><b>{x['score']:.1f}</b></td>"
         "</tr>"
         for x in machine_features
-    ) or '<tr><td colspan="9">台別履歴を計算できるデータがありません</td></tr>'
+    ) or '<tr><td colspan="10">台別履歴を計算できるデータがありません</td></tr>'
 
     section = f"""
 <section id="historical-validation" style="margin-top:32px">
@@ -309,7 +350,9 @@ def build():
 <h3>台別・履歴特徴スコア ＋ 公表スペック</h3>
 <p class="note">
 「公表スペック」には型式を照合できた機種だけ、通常時確率・右打ち/ST中確率・RUSH/ST突入率・継続率を表示します。
-推測値は使わず、未確認の型式は「未登録」と表示します。出典リンクから元データを確認できます。
+「1万円 初当たり理論確率」は、公表された通常時1/N確率から、1,000円あたり12回・15回・18回回せると仮定した場合に、
+合計1万円までに初当たりを1回以上引く理論確率を示します。実際の回転率・釘・交換条件・遊タイム・RUSH等は反映しません。
+羽根モノなど固定の通常時1/Nとして扱えない機種は「算出対象外」とします。この列は推奨順位には使用しません。
 </p>
 <div class="wrap" style="max-height:65vh">
 <table id="featureTable">
@@ -317,12 +360,13 @@ def build():
 <th onclick="sortFeatureTable(0,false)">台番号 ↕</th>
 <th onclick="sortFeatureTable(1,false)">機種 ↕</th>
 <th>公表スペック</th>
-<th onclick="sortFeatureTable(3,true)">採用日数 ↕</th>
-<th onclick="sortFeatureTable(4,true)">7日平均持玉 ↕</th>
-<th onclick="sortFeatureTable(5,true)">30日平均持玉 ↕</th>
-<th onclick="sortFeatureTable(6,true)">{latest_weekday}曜平均持玉 ↕</th>
-<th onclick="sortFeatureTable(7,true)">7日平均大当り ↕</th>
-<th onclick="sortFeatureTable(8,true)">履歴特徴スコア ↕</th>
+<th>1万円 初当たり理論確率</th>
+<th onclick="sortFeatureTable(4,true)">採用日数 ↕</th>
+<th onclick="sortFeatureTable(5,true)">7日平均持玉 ↕</th>
+<th onclick="sortFeatureTable(6,true)">30日平均持玉 ↕</th>
+<th onclick="sortFeatureTable(7,true)">{latest_weekday}曜平均持玉 ↕</th>
+<th onclick="sortFeatureTable(8,true)">7日平均大当り ↕</th>
+<th onclick="sortFeatureTable(9,true)">履歴特徴スコア ↕</th>
 </tr></thead>
 <tbody>{machine_rows}</tbody>
 </table>
