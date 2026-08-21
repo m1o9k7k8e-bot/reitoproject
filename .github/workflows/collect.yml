@@ -2,6 +2,11 @@ name: Collect Reito pachinko data
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/collect.yml"
   schedule:
     # JST 23:30
     # GitHub Actions cron is UTC.
@@ -32,18 +37,20 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Collect Reito data
+        if: github.event_name != 'push'
         id: collect
         continue-on-error: true
         run: python collector.py --out data --sleep 0.35
 
       - name: Build dashboard
-        if: steps.collect.outcome == 'success'
+        if: github.event_name == 'push' || steps.collect.outcome == 'success'
         run: |
+          python export_current_models.py
           python build_site.py
           python analysis_site.py
 
       - name: Save collected data
-        if: steps.collect.outcome == 'success'
+        if: github.event_name == 'push' || steps.collect.outcome == 'success'
         run: |
           git config user.name "reito-data-bot"
           git config user.email "actions@users.noreply.github.com"
@@ -52,7 +59,7 @@ jobs:
           git push
 
       - name: Fail workflow if collection failed
-        if: steps.collect.outcome != 'success'
+        if: github.event_name != 'push' && steps.collect.outcome != 'success'
         run: |
           echo "Collection failed or snapshot quality was insufficient."
           exit 1
