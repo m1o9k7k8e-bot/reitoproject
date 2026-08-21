@@ -142,7 +142,7 @@ def build():
     ) or '<tr><td colspan="6">観測実績を計算できるデータがありません</td></tr>'
 
     model_rows_data = []
-    for (mid, machine_name), units in model_units.items():
+    for (_mid, machine_name), units in model_units.items():
         all_hits = [value for unit in units for value in unit["hits"]]
         if not all_hits:
             continue
@@ -177,20 +177,23 @@ def build():
 
     model_rows_data.sort(key=lambda x: (-x["units"], x["machine"]))
 
-    model_table_rows = "\n".join(
-        "<tr>"
-        f"<td>{esc(x['machine'])}</td>"
-        f"<td>{x['units']}</td>"
-        f"<td>{x['unit_days']}</td>"
-        f"<td>{x['hit_days']}/{x['unit_days']} ({x['rate']:.1f}%)"
-        f"<br><small>95%区間 {x['ci_low']:.1f}–{x['ci_high']:.1f}%</small></td>"
-        f"<td>{x['mean_hits']:.1f}</td>"
-        f"<td>{x['median_hits']:.1f}</td>"
-        f"<td>{x['q1']:.1f}–{x['q3']:.1f}</td>"
-        f"<td>{'—' if x['unit_cv'] is None else f'{x[\"unit_cv\"]:.1f}%'}" + "</td>"
-        "</tr>"
-        for x in model_rows_data
-    ) or '<tr><td colspan="8">機種別統計を計算できるデータがありません</td></tr>'
+    model_parts = []
+    for x in model_rows_data:
+        cv_text = "—" if x["unit_cv"] is None else f"{x['unit_cv']:.1f}%"
+        model_parts.append(
+            "<tr>"
+            f"<td>{esc(x['machine'])}</td>"
+            f"<td>{x['units']}</td>"
+            f"<td>{x['unit_days']}</td>"
+            f"<td>{x['hit_days']}/{x['unit_days']} ({x['rate']:.1f}%)"
+            f"<br><small>95%区間 {x['ci_low']:.1f}–{x['ci_high']:.1f}%</small></td>"
+            f"<td>{x['mean_hits']:.1f}</td>"
+            f"<td>{x['median_hits']:.1f}</td>"
+            f"<td>{x['q1']:.1f}–{x['q3']:.1f}</td>"
+            f"<td>{cv_text}</td>"
+            "</tr>"
+        )
+    model_table_rows = "\n".join(model_parts) or '<tr><td colspan="8">機種別統計を計算できるデータがありません</td></tr>'
 
     section = f"""
 <section id="observed-history" style="margin-top:32px">
