@@ -1,0 +1,38 @@
+name: Rebuild manual review dashboard
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - rebuild_manual_review.signal
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install packages
+        run: pip install -r requirements.txt
+      - name: Rebuild from saved repository data only
+        run: |
+          python merge_machine_specs.py
+          python export_current_models.py
+          python build_site.py
+          python analysis_site.py
+          python observed_history.py
+          python manual_review_candidates.py
+      - name: Save dashboard
+        run: |
+          git config user.name "reito-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs
+          git diff --cached --quiet || git commit -m "Rebuild manual review dashboard"
+          git push
