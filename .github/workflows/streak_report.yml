@@ -1,0 +1,111 @@
+name: Build zero-hit streak report
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - streak_report.signal
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build report from saved database only
+        run: |
+          python - <<'PY'
+          import csv, json
+          from collections import defaultdict
+          from datetime import datetime, timezone, timedelta
+          from zoneinfo import ZoneInfo
+
+          JST = ZoneInfo('Asia/Tokyo')
+          rows=[]
+          with open('data/daily_records.csv', encoding='utf-8-sig') as f:
+              for r in csv.DictReader(f):
+                  try:
+                      stamp=datetime.strptime(r['collected_at'],'%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc).astimezone(JST)
+                  except Exception:
+                      continue
+                  # The scheduled collector runs shortly after midnight JST. Those rows
+                  # represent the just-finished previous business day on Reito.
+                  if stamp.hour <= 3:
+                      business_date=(datetime.strptime(r['record_date'],'%Y-%m-%d').date()-timedelta(days=1)).isoformat()
+                  elif stamp.hour >= 22:
+                      business_date=r['record_date']
+                  else:
+                      continue
+                  if r['big_hits']=='' or r['big_hits'] is None:
+                      continue
+                  rows.append({**r,'business_date':business_date,'big_hits_i':int(r['big_hits'])})
+
+          # Keep latest snapshot per machine/business date if duplicates exist.
+          per={}
+          for r in rows:
+              key=(r['machine_number'],r['business_date'])
+              if key not in per or r['collected_at'] > per[key]['collected_at']:
+                  per[key]=r
+
+          by=defaultdict(list)
+          for r in per.values():
+              by[r['machine_number']].append(r)
+
+          out=[]
+          for num, recs in by.items():
+              recs=sorted(recs,key=lambda x:x['business_date'])
+              latest=recs[-1]
+              current_mid=latest['machine_id']
+              gen=[]
+              for r in reversed(recs):
+                  if r['machine_id']!=current_mid:
+                      break
+                  gen.append(r)
+              gen=list(reversed(gen))
+              streak=[]
+              for r in reversed(gen):
+                  if r['big_hits_i']==0:
+                      streak.append(r)
+                  else:
+                      break
+              if not streak:
+                  continue
+              # Chronological streak dates
+              streak=list(reversed(streak))
+              last_nonzero=None
+              for r in reversed(gen[:-len(streak)] if len(streak)<len(gen) else []):
+                  if r['big_hits_i']>0:
+                      last_nonzero=r
+                      break
+              max_balls_vals=[int(r['max_balls']) for r in streak if r['max_balls'] not in ('',None)]
+              activity_hint='未稼働の可能性高め' if max(max_balls_vals or [0]) <= 30 else '要累計スタート確認'
+              out.append({
+                  'machine_number':num,
+                  'machine_id':current_mid,
+                  'machine_name':latest['machine_name'],
+                  'zero_streak_days':len(streak),
+                  'streak_start':streak[0]['business_date'],
+                  'latest_business_date':streak[-1]['business_date'],
+                  'last_nonzero_date': last_nonzero['business_date'] if last_nonzero else None,
+                  'last_nonzero_hits': last_nonzero['big_hits_i'] if last_nonzero else None,
+                  'streak_max_balls_max':max(max_balls_vals or [0]),
+                  'activity_hint':activity_hint,
+              })
+          out.sort(key=lambda x:(-x['zero_streak_days'], x['machine_number']))
+          with open('data/zero_hit_streak_report.json','w',encoding='utf-8') as f:
+              json.dump(out,f,ensure_ascii=False,indent=2)
+          PY
+      - name: Save report
+        run: |
+          git config user.name "reito-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/zero_hit_streak_report.json
+          git diff --cached --quiet || git commit -m "Build zero-hit streak report"
+          git push
