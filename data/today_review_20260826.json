@@ -1,0 +1,942 @@
+[
+  {
+    "machine_number": "0182",
+    "machine_name": "Ｐ閃乱カグラＬＴＮ－ＦＳ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 5,
+    "streak_start": "2026-08-21",
+    "streak_max_balls": 5120,
+    "latest_max_balls": 10,
+    "review_note": "要累計スタート確認"
+  },
+  {
+    "machine_number": "0301",
+    "machine_name": "ｅぱちんこソードアート・オンラインＫ１２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 6,
+    "streak_start": "2026-08-19",
+    "streak_max_balls": 20,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0385",
+    "machine_name": "ｅフィーバーデッドマウント・デスプレイＴ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 6,
+    "streak_start": "2026-08-19",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0299",
+    "machine_name": "ｅぱちんこソードアート・オンラインＫ１２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 6,
+    "streak_start": "2026-08-19",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0185",
+    "machine_name": "ＰウルトラマンメビウスＭ４",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 5,
+    "streak_start": "2026-08-21",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0448",
+    "machine_name": "ｅフィーバーブルーロックＭＺ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 3,
+    "streak_start": "2026-08-23",
+    "streak_max_balls": 20,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0215",
+    "machine_name": "Ｐスーパー海物語ＩＮ沖縄６ＬＴＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0233",
+    "machine_name": "Ｐ大海物語５ＭＴＥ２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 20,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0240",
+    "machine_name": "Ｐスーパー海物語ＩＮ沖縄６ＬＴＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0245",
+    "machine_name": "Ｐスーパー海物語ＩＮ沖縄６ＬＴＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 20,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0249",
+    "machine_name": "Ｐスーパー海物語ＩＮ沖縄６ＬＴＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0251",
+    "machine_name": "Ｐスーパー海物語ＩＮ沖縄６ＬＴＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0272",
+    "machine_name": "ｅ東京喰種Ｗ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0304",
+    "machine_name": "ｅぱちんこソードアート・オンラインＫ１２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 20,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0311",
+    "machine_name": "ｅリコリス・リコイルＭ３",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 20,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0313",
+    "machine_name": "ｅリコリス・リコイルＭ３",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 20,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0164",
+    "machine_name": "Ｐ戦国乙女７Ｌ０ＹＵ１",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0205",
+    "machine_name": "Ｐスーパー海物語ＩＮ沖縄６ＬＴＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0237",
+    "machine_name": "Ｐ大海物語５ＭＴＥ２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0247",
+    "machine_name": "Ｐスーパー海物語ＩＮ沖縄６ＬＴＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0256",
+    "machine_name": "ｅソードアート・オンライン~閃光の軌跡~Ｋ７",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0261",
+    "machine_name": "ｅソードアート・オンライン~閃光の軌跡~Ｋ７",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0276",
+    "machine_name": "ｅ東京喰種Ｗ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0349",
+    "machine_name": "ｅ女神のカフェテラスＪＬＺ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0356",
+    "machine_name": "ｅ虚構推理ＭＨＪＴ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0358",
+    "machine_name": "ｅ虚構推理ＭＨＪＴ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0360",
+    "machine_name": "ＰＣＹＢＯＲＧ００９Ｓ３－Ｋ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0373",
+    "machine_name": "ｅエデンズゼロＡＩＮ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0375",
+    "machine_name": "ｅエデンズゼロＡＩＮ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0379",
+    "machine_name": "ｅバイオハザード６ＡＰＮ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0380",
+    "machine_name": "ｅバイオハザード６ＡＰＮ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0386",
+    "machine_name": "ｅフィーバーデッドマウント・デスプレイＴ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0388",
+    "machine_name": "ｅカケグルイ~生か死か~ＬＴＴ－ＫＲ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0430",
+    "machine_name": "ｅメイヒテンセイＣＭＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0437",
+    "machine_name": "ｅフィーバー炎炎ノ消防隊２ＭＳ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0440",
+    "machine_name": "ｅライザのアトリエＫ３",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0441",
+    "machine_name": "ｅリング 最恐領域ＲＨＡ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0442",
+    "machine_name": "ｅエイティシックスＭＡＭ２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0447",
+    "machine_name": "ｅ／押忍番長漢の頂／Ｌ０９",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0235",
+    "machine_name": "Ｐ大海物語５ＭＴＥ２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0257",
+    "machine_name": "ｅソードアート・オンライン~閃光の軌跡~Ｋ７",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0434",
+    "machine_name": "ｅアズールレーンＴＨＥ ＡＮＩＭＡＴＩＯＮ２Ｋ６",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 2,
+    "streak_start": "2026-08-24",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0187",
+    "machine_name": "Ｐうまい棒２Ｖ３",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0203",
+    "machine_name": "Ｐスーパー海物語ＩＮ沖縄６ＬＴＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0252",
+    "machine_name": "Ｐスーパー海物語ＩＮ沖縄６ＬＴＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0254",
+    "machine_name": "ｅソードアート・オンライン~閃光の軌跡~Ｋ７",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0318",
+    "machine_name": "ｅひきこまり吸血姫の悶々ＦＨＶ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0322",
+    "machine_name": "ｅフィーバー機動戦士ガンダムＳＥＥＤ２ｂＦ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 20,
+    "latest_max_balls": 20,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0155",
+    "machine_name": "Ｐ北斗の拳強敵ＳＳＰＡ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0183",
+    "machine_name": "Ｐ戦国乙女７Ｈ０ＹＺ３",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0197",
+    "machine_name": "ＰＡ乗物娘２Ｎ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0200",
+    "machine_name": "ＰＡフィーバー戦姫絶唱シンフォギア４ＡＲ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0209",
+    "machine_name": "Ｐスーパー海物語ＩＮ沖縄６ＬＴＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0219",
+    "machine_name": "ＰＡ大海物語５ＨＬＤ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0230",
+    "machine_name": "ＰＡスーパー海物語ＩＮ沖縄６ＲＢＤ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0236",
+    "machine_name": "Ｐ大海物語５ＭＴＥ２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0241",
+    "machine_name": "Ｐスーパー海物語ＩＮ沖縄６ＬＴＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0253",
+    "machine_name": "ｅソードアート・オンライン~閃光の軌跡~Ｋ７",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0274",
+    "machine_name": "ｅ東京喰種Ｗ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0296",
+    "machine_name": "ｅぱちんこソードアート・オンラインＫ１２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0297",
+    "machine_name": "ｅぱちんこソードアート・オンラインＫ１２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0302",
+    "machine_name": "ｅぱちんこソードアート・オンラインＫ１２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0303",
+    "machine_name": "ｅぱちんこソードアート・オンラインＫ１２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0306",
+    "machine_name": "ｅ七つの大罪３ＧＦＥＡ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0332",
+    "machine_name": "ｅ牙狼１２ＸＸ－ＭＪ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0336",
+    "machine_name": "ｅ牙狼１２ＸＸ－ＭＪ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0337",
+    "machine_name": "ｅ牙狼１２ＸＸ－ＭＪ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0342",
+    "machine_name": "ｅ牙狼１２ＸＸ－ＭＪ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0344",
+    "machine_name": "ｅ牙狼１２ＸＸ－ＭＪ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0365",
+    "machine_name": "Ｐ弾球黙示録カイジ沼５Ｖ１Ｕ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0367",
+    "machine_name": "Ｐシン・エヴァンゲリオンＸ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0369",
+    "machine_name": "Ｐ新世紀エヴァンゲリオン１５ 未来への咆哮",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0370",
+    "machine_name": "Ｐ新世紀エヴァンゲリオン１５ 未来への咆哮",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0372",
+    "machine_name": "ｅエデンズゼロＡＩＮ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0374",
+    "machine_name": "ｅエデンズゼロＡＩＮ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0383",
+    "machine_name": "ｅフィーバーキン肉マン",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0393",
+    "machine_name": "ｅ無職転生~異世界行ったら本気だす",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0399",
+    "machine_name": "ｅ必殺仕事人ⅥＭ２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0426",
+    "machine_name": "ｅ転生したらスライムだった件２ＭＦ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0436",
+    "machine_name": "ｅバキ２ＬＢＭ４",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0443",
+    "machine_name": "ｅアクセル・ワールドＬＭ２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 10,
+    "latest_max_balls": 10,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0158",
+    "machine_name": "ＰＡフィーバークィーンⅡＹＳ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0305",
+    "machine_name": "ｅ七つの大罪３ＧＦＥＡ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0307",
+    "machine_name": "ｅとある魔術の禁書目録 最狂ＲＲＡ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0357",
+    "machine_name": "ｅ虚構推理ＭＨＪＴ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0359",
+    "machine_name": "ＰバイオハザードＲＥ２Ｌ９ＹＺ４",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0377",
+    "machine_name": "ｅ東京リベンジャーズ聖夜決戦編ＥＲＥＣ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0387",
+    "machine_name": "ｅカケグルイ~生か死か~ＬＴＴ－ＫＲ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0389",
+    "machine_name": "ｅカケグルイ~生か死か~ＬＴＴ－ＫＲ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0396",
+    "machine_name": "ｅ結城友奈は勇者であるＭＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0397",
+    "machine_name": "ｅ結城友奈は勇者であるＭＰ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0427",
+    "machine_name": "ｅ魔法少女リリカルなのはＨＴＥＺ２",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0432",
+    "machine_name": "ｅとある科学の超電磁砲 ＬＴＲＳＹ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  },
+  {
+    "machine_number": "0450",
+    "machine_name": "ｅ真・一騎当千~軍神覚醒~ＡＭ－ＴＳ",
+    "business_date": "2026-08-25",
+    "zero_streak_days": 1,
+    "streak_start": "2026-08-25",
+    "streak_max_balls": 0,
+    "latest_max_balls": 0,
+    "review_note": "未稼働の可能性あり"
+  }
+]
