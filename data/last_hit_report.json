@@ -1,0 +1,85 @@
+{
+  "cutoff": "2026-08-20",
+  "latest_business_date": "2026-08-24",
+  "count": 6,
+  "rows": [
+    {
+      "machine_number": "0299",
+      "machine_id": "233",
+      "machine_name": "ｅぱちんこソードアート・オンラインＫ１２",
+      "latest_business_date": "2026-08-24",
+      "last_hit_date": "2026-08-15",
+      "last_hit_count": 14,
+      "days_since_last_hit_calendar": 9,
+      "consecutive_closed_days_zero": 5,
+      "zero_streak_start": "2026-08-19",
+      "zero_streak_max_balls": 10,
+      "activity_note": "未稼働の可能性あり"
+    },
+    {
+      "machine_number": "0301",
+      "machine_id": "233",
+      "machine_name": "ｅぱちんこソードアート・オンラインＫ１２",
+      "latest_business_date": "2026-08-24",
+      "last_hit_date": "2026-08-15",
+      "last_hit_count": 1,
+      "days_since_last_hit_calendar": 9,
+      "consecutive_closed_days_zero": 5,
+      "zero_streak_start": "2026-08-19",
+      "zero_streak_max_balls": 20,
+      "activity_note": "未稼働の可能性あり"
+    },
+    {
+      "machine_number": "0385",
+      "machine_id": "1615",
+      "machine_name": "ｅフィーバーデッドマウント・デスプレイＴ",
+      "latest_business_date": "2026-08-24",
+      "last_hit_date": "2026-08-15",
+      "last_hit_count": 2,
+      "days_since_last_hit_calendar": 9,
+      "consecutive_closed_days_zero": 5,
+      "zero_streak_start": "2026-08-19",
+      "zero_streak_max_balls": 10,
+      "activity_note": "未稼働の可能性あり"
+    },
+    {
+      "machine_number": "0182",
+      "machine_id": "1423",
+      "machine_name": "Ｐ閃乱カグラＬＴＮ－ＦＳ",
+      "latest_business_date": "2026-08-24",
+      "last_hit_date": "2026-08-19",
+      "last_hit_count": 2,
+      "days_since_last_hit_calendar": 5,
+      "consecutive_closed_days_zero": 4,
+      "zero_streak_start": "2026-08-21",
+      "zero_streak_max_balls": 5120,
+      "activity_note": "要累計スタート確認"
+    },
+    {
+      "machine_number": "0185",
+      "machine_id": "1621",
+      "machine_name": "ＰウルトラマンメビウスＭ４",
+      "latest_business_date": "2026-08-24",
+      "last_hit_date": "2026-08-19",
+      "last_hit_count": 3,
+      "days_since_last_hit_calendar": 5,
+      "consecutive_closed_days_zero": 4,
+      "zero_streak_start": "2026-08-21",
+      "zero_streak_max_balls": 10,
+      "activity_note": "未稼働の可能性あり"
+    },
+    {
+      "machine_number": "0362",
+      "machine_id": "1631",
+      "machine_name": "Ｐ魔法少女まどか☆マギカ３ＬＭ３",
+      "latest_business_date": "2026-08-24",
+      "last_hit_date": "2026-08-19",
+      "last_hit_count": 6,
+      "days_since_last_hit_calendar": 5,
+      "consecutive_closed_days_zero": 4,
+      "zero_streak_start": "2026-08-21",
+      "zero_streak_max_balls": 10,
+      "activity_note": "未稼働の可能性あり"
+    }
+  ]
+}
