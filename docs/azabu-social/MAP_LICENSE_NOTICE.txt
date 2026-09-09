@@ -1,0 +1,6 @@
+Japan prefecture vector map source used by the app at runtime:
+PA4KEV/japan-vector-map
+https://github.com/PA4KEV/japan-vector-map
+License: MIT License
+
+The app fetches the SVG at runtime and caches it locally in the browser after first successful load.
