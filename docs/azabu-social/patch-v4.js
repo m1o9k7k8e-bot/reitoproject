@@ -1,7 +1,6 @@
 // v4 final polish: preserve answered position when pausing, avoid revealing timeline answers,
 // and label stacked-chart categories correctly.
 (function(){
-  const originalPause = pauseSession;
   pauseSession = function(){
     if(!S.active){ showPage('home',document.querySelector('[data-p="home"]')); return; }
     S.active.index = Math.max(S.active.index||0, ix);
@@ -38,4 +37,9 @@
     const legend=`<div class="legend">${g.labels.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`;
     return html.replace(/<div class="legend">[\s\S]*?<\/div><div class="chartNote">/,legend+'<div class="chartNote">');
   };
+
+  const s=document.createElement('script');
+  s.src='patch-v42.js';
+  s.defer=false;
+  document.body.appendChild(s);
 })();
