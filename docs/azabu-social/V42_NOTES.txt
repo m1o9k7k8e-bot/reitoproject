@@ -1,0 +1,6 @@
+v4.2
+- Timeline questions now show the actual event term before asking the era.
+- Prefecture visual questions no longer ask for the prefecture name.
+- They show a real Japan prefecture-boundary map and ask for linked regional knowledge/reasons.
+- Prefecture names remain hidden until feedback.
+- Map vector source: PA4KEV/japan-vector-map, MIT License.
