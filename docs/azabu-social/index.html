@@ -1,2 +1,117 @@
 <!DOCTYPE html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0f3557"><link rel="manifest" href="manifest.webmanifest"><title>麻布社会 MASTER 30+</title><link rel="stylesheet" href="style.css"></head><body><header><div class="head"><div class="brand">麻布社会 MASTER 30+</div><div class="day" id="dayBadge">Day 1 / 30</div></div></header><main><section id="home"><div class="hero"><h1>500知識ユニット × 約3,000+出題パターン</h1><p>歴史・地理・公民を「思い出す → 比べる → つなぐ → 説明する」で定着。最初の3日は広く診断、その後は弱点ほど多く出ます。v3では47都道府県・文化史・公民細目・白紙想起・ミニ資料を強化しました。</p><div class="stats"><div class="stat"><b id="streak">0</b><span>連続日数</span></div><div class="stat"><b id="todayCount">0</b><span>今日の回答</span></div><div class="stat"><b id="covered">0</b><span>触れた知識</span></div><div class="stat"><b id="acc">—</b><span>正答/達成率</span></div></div></div><div class="grid"><div class="card"><h2>🎯 今日の20問</h2><p>未診断・弱点・復習期限・麻布型を混ぜて自動編成。約15〜20分。</p><button class="btn" onclick="start('daily')">今日のミッション</button></div><div class="card"><h2>🚑 弱点レスキュー</h2><p>現在の弱点上位だけを10問。直前の取りこぼし防止に。</p><button class="btn amber" onclick="start('weak')">弱点10問</button></div><div class="card"><h2>🧠 麻布「なぜ？」</h2><p>40〜80字の理由説明。原因→仕組み→結果の採点ポイントを確認。</p><button class="btn green" onclick="start('azabu')">記述6問</button></div><div class="card"><h2>⏳ 歴史タイムライン</h2><p>出来事の前後関係を瞬時に整理。年号丸暗記ではなく流れを固める。</p><button class="btn sub" onclick="start('timeline')">年代順8問</button></div></div><h2 class="section">分野別</h2><div class="grid"><div class="card"><h3>🏯 歴史</h3><p>原始〜戦後。原因・結果と時代のつながりを重視。</p><button class="btn sub" onclick="start('歴史')">歴史12問</button></div><div class="card"><h3>🗾 地理</h3><p>自然・農業・工業・交通・人口・地方・世界を横断。</p><button class="btn sub" onclick="start('地理')">地理12問</button></div><div class="card"><h3>🏛️ 公民</h3><p>憲法・三権・選挙・地方・財政・社会保障・国際。</p><button class="btn sub" onclick="start('公民')">公民12問</button></div><div class="card"><h3>🔗 知識リンク</h3><p>「北前船→交通」「石油→ホルムズ→安全保障」のように分野を結ぶ。</p><button class="btn sub" onclick="start('link')">リンク10問</button></div></div><h2 class="section">1か月の使い方</h2><div class="card"><p><b>Day 1〜3：</b>広範囲診断（毎日20問）　<b>Day 4〜20：</b>弱点反復＋白紙想起＋知識リンク　<b>Day 21〜27：</b>麻布記述・ミニ資料を増量　<b>Day 28〜30：</b>弱点上位だけ総仕上げ</p><p class="small">正解した知識は間隔をあけ、誤答・部分点は早く再登場します。単純に「問題を全部一周」する設計ではありません。</p></div></section><section id="quiz" class="hidden qbox"><div class="row" style="justify-content:space-between"><b id="qnum"></b><span id="modeName" class="small"></span></div><div class="progress"><div id="pbar"></div></div><div class="card"><div class="row" id="meta"></div><div class="qprompt" id="prompt"></div><div id="answerArea"></div><div id="feedback" class="hidden"></div><div class="nav"><button class="btn sub" onclick="speak()">🔊 読み上げ</button><button class="btn hidden" id="next" onclick="next()">次へ</button></div></div></section><section id="weakpage" class="hidden"><h1>弱点マップ</h1><div class="grid"><div class="card"><h3>歴史</h3><div id="mapH" class="map"></div></div><div class="card"><h3>地理</h3><div id="mapG" class="map"></div></div><div class="card"><h3>公民</h3><div id="mapC" class="map"></div></div></div><h2 class="section">優先弱点 TOP 15</h2><div class="card weak" id="weakList"></div></section><section id="note" class="hidden"><h1>間違いノート</h1><div class="card"><div id="mistakes"></div></div></section><section id="data" class="hidden"><h1>データ / 親モード</h1><div class="grid"><div class="card"><h3>週次レポート</h3><p>弱点をChatGPTへ渡すためのレポートを自動作成。</p><button class="btn" onclick="copyReport()">弱点レポートをコピー</button></div><div class="card"><h3>バックアップ</h3><p>Safariの保存データ消去に備え、週1回推奨。</p><button class="btn sub" onclick="exportState()">進捗を保存</button><label class="btn sub" style="display:block;text-align:center;margin-top:8px">進捗を読み込む<input type="file" accept=".json" onchange="importState(event)" hidden></label></div><div class="card"><h3>収録範囲</h3><p><b id="coreCount"></b> 知識ユニット / <b id="patternCount"></b> 基本出題パターン＋ランダム年代・リンク問題。</p><button class="btn sub" onclick="showCoverage()">全単元を見る</button></div><div class="card"><h3>データ初期化</h3><p>初めから診断し直すときだけ使用。</p><button class="btn red" onclick="resetAll()">全進捗をリセット</button></div></div><div id="coverageBox" class="hidden card" style="margin-top:12px"></div></section></main><div class="tabshell"><div class="tabs"><button class="tab active" data-p="home" onclick="page('home',this)"><b>⌂</b>ホーム</button><button class="tab" data-p="weakpage" onclick="page('weakpage',this)"><b>◎</b>弱点</button><button class="tab" data-p="note" onclick="page('note',this)"><b>✎</b>間違い</button><button class="tab" data-p="data" onclick="page('data',this)"><b>☰</b>データ</button></div></div><div id="doneModal" class="modal hidden"><div class="modalbox"><h2>セッション完了 🎉</h2><div id="doneBody"></div><button class="btn" onclick="closeDone()">ホームへ</button></div></div><script src="bank00.js"></script><script src="bank01.js"></script><script src="bank02.js"></script><script src="bank03.js"></script><script src="bank04.js"></script><script src="bank05.js"></script><script src="bank06.js"></script><script src="bank07.js"></script><script src="bank08.js"></script><script src="bank09a.js"></script><script src="bank09b.js"></script><script src="bank09c.js"></script><script src="bank09d.js"></script><script src="bank09e.js"></script><script src="app.js"></script><script src="enhance.js"></script><script src="enhance-reset.js"></script></body></html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#102f4c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
+<title>麻布社会 MASTER 30 v4</title>
+</head>
+<body>
+<header>
+  <div class="head">
+    <div><div class="brand">麻布社会 MASTER 30 <span class="vtag">v4</span></div><div class="subbrand">知識 × ビジュアル × 口頭説明</div></div>
+    <div class="day" id="dayBadge">Day 1 / 30</div>
+  </div>
+</header>
+<main>
+<section id="home">
+  <div class="hero">
+    <div class="eyebrow">麻布中社会・1か月集中</div>
+    <h1>見る → 思い出す → つなぐ → 口で説明する</h1>
+    <p>500の基礎知識に、都道府県位置・地図記号・グラフ読解・時代バー・公民マップを組み合わせます。文字入力は使いません。</p>
+    <div class="stats">
+      <div class="stat"><b id="todayCount">0</b><span>今日の回答</span></div>
+      <div class="stat"><b id="covered">0</b><span>触れた知識</span></div>
+      <div class="stat"><b id="weakCount">0</b><span>要復習</span></div>
+      <div class="stat"><b id="acc">—</b><span>達成率</span></div>
+    </div>
+  </div>
+
+  <div id="resumeCard" class="resume card hidden">
+    <div><div class="eyebrow dark">保存中のセッション</div><h2 id="resumeTitle">途中から再開</h2><p id="resumeText"></p></div>
+    <div class="resumeActions"><button class="btn" onclick="resumeSession()">▶ 続きから再開</button><button class="btn sub" onclick="discardSession()">保存中の問題を終了</button></div>
+  </div>
+
+  <h2 class="section">今日やる</h2>
+  <div class="grid">
+    <div class="card featured"><h2>🎯 今日の20問</h2><p>弱点・未診断・ビジュアル・口頭説明を自動配分。まずこれだけでOK。</p><button class="btn" onclick="startSession('daily')">今日のミッション</button></div>
+    <div class="card"><h2>🚑 弱点レスキュー</h2><p>間違い・部分点・復習期限が来た知識を優先して10問。</p><button class="btn amber" onclick="startSession('weak')">弱点10問</button></div>
+    <div class="card"><h2>🗺️ 地図・グラフ</h2><p>都道府県の位置、地図記号、統計・グラフを見て考える。</p><button class="btn geoBtn" onclick="startSession('visual')">ビジュアル10問</button></div>
+    <div class="card"><h2>🗣️ 麻布「口頭でなぜ？」</h2><p>入力不要。考えて口頭で答え、すぐに必要要素を確認。</p><button class="btn green" onclick="startSession('oral')">口頭説明8問</button></div>
+    <div class="card"><h2>⏳ 歴史の位置づけ</h2><p>全時代バーで「今どこを学んでいるか」を毎問確認。</p><button class="btn histBtn" onclick="startSession('timeline')">時代・年代8問</button></div>
+    <div class="card"><h2>🔗 知識リンク</h2><p>単語を単独で覚えず、原因・場所・制度・結果につなげる。</p><button class="btn sub" onclick="startSession('link')">リンク10問</button></div>
+  </div>
+
+  <h2 class="section">分野別</h2>
+  <div class="grid three">
+    <div class="card"><h3>🏯 歴史</h3><p>原始〜現代。全歴史バーを常に表示。</p><button class="btn sub" onclick="startSession('歴史')">歴史12問</button></div>
+    <div class="card"><h3>🗾 地理</h3><p>自然・産業・地方・世界＋地図・資料。</p><button class="btn sub" onclick="startSession('地理')">地理12問</button></div>
+    <div class="card"><h3>🏛️ 公民</h3><p>憲法→選挙→国会→内閣→司法→地方→財政。</p><button class="btn sub" onclick="startSession('公民')">公民12問</button></div>
+  </div>
+
+  <div class="card parentQuick">
+    <div><h3>保護者用：学習データを0からやり直す</h3><p>今回、お父さまが試した記録を消して、お子さん用に完全に初期化できます。</p></div>
+    <button class="btn red compact" onclick="resetAllData()">全学習データをリセット</button>
+  </div>
+</section>
+
+<section id="quiz" class="hidden qbox">
+  <div class="quizTop">
+    <button class="backBtn" onclick="pauseSession()">← ホームへ戻る<br><span>途中保存</span></button>
+    <div class="quizProgress"><div class="row between"><b id="qnum"></b><span class="small" id="modeName"></span></div><div class="progress"><div id="pbar"></div></div></div>
+  </div>
+  <div class="card questionCard">
+    <div class="row" id="meta"></div>
+    <div id="contextVisual" class="contextVisual"></div>
+    <div class="qprompt" id="prompt"></div>
+    <div id="answerArea"></div>
+    <div id="feedback" class="hidden"></div>
+    <div class="nav"><button class="btn sub" onclick="speakQuestion()">🔊 読み上げ</button><button class="btn hidden" id="nextBtn" onclick="nextQuestion()">次へ →</button></div>
+  </div>
+</section>
+
+<section id="weakpage" class="hidden">
+  <h1>弱点マップ</h1>
+  <p class="lead">「正解したか」だけでなく、白紙想起・口頭説明・ビジュアル問題も含めて復習優先度を決めます。</p>
+  <div class="grid three">
+    <div class="card"><h3>歴史</h3><div id="mapH" class="masteryMap"></div></div>
+    <div class="card"><h3>地理</h3><div id="mapG" class="masteryMap"></div></div>
+    <div class="card"><h3>公民</h3><div id="mapC" class="masteryMap"></div></div>
+  </div>
+  <h2 class="section">優先弱点 TOP 15</h2>
+  <div class="card weak" id="weakList"></div>
+</section>
+
+<section id="note" class="hidden">
+  <h1>間違いノート</h1>
+  <p class="lead">誤答・「一部だけ言えた」問題を自動で残します。</p>
+  <div class="card"><div id="mistakes"></div></div>
+</section>
+
+<section id="data" class="hidden">
+  <h1>データ / 保護者モード</h1>
+  <div class="grid">
+    <div class="card"><h3>📋 週次弱点レポート</h3><p>ChatGPTに貼れる形式で、弱点上位と分野別到達度をコピーします。</p><button class="btn" onclick="copyReport()">弱点レポートをコピー</button></div>
+    <div class="card"><h3>💾 バックアップ</h3><p>進捗をJSONで保存・復元できます。</p><button class="btn sub" onclick="exportState()">進捗を保存</button><label class="btn sub fileBtn">進捗を読み込む<input type="file" accept=".json" onchange="importState(event)" hidden></label></div>
+    <div class="card"><h3>↻ 復習を強制</h3><p>過去成績は残したまま、定着済みも今日の出題対象へ戻します。</p><button class="btn sub" onclick="retestMastered()">定着済みを再テスト</button></div>
+    <div class="card danger"><h3>⚠️ 完全リセット</h3><p>回答履歴・弱点・途中セッションをすべて消し、Day 1から開始します。</p><button class="btn red" onclick="resetAllData()">全学習データをリセット</button></div>
+  </div>
+  <div class="card infoCard"><h3>収録内容</h3><p><b id="coreCount">500</b>知識ユニット＋都道府県位置47問＋地図記号＋グラフ・資料＋動的年代問題。問題の組み合わせは毎回変化します。</p><p class="small">地図記号は国土地理院の現行地図記号を参考にした学習表示です。グラフの一部は読解練習用の模式データです。</p></div>
+</section>
+</main>
+
+<div class="tabshell"><div class="tabs">
+  <button class="tab active" data-p="home" onclick="showPage('home',this)"><b>⌂</b>ホーム</button>
+  <button class="tab" data-p="weakpage" onclick="showPage('weakpage',this)"><b>◎</b>弱点</button>
+  <button class="tab" data-p="note" onclick="showPage('note',this)"><b>✎</b>間違い</button>
+  <button class="tab" data-p="data" onclick="showPage('data',this)"><b>☰</b>データ</button>
+</div></div>
+
+<div id="doneModal" class="modal hidden"><div class="modalbox"><h2>セッション完了 🎉</h2><div id="doneBody"></div><button class="btn" onclick="closeDone()">ホームへ</button></div></div>
+
+<script src="bank00.js"></script><script src="bank01.js"></script><script src="bank02.js"></script><script src="bank03.js"></script><script src="bank04.js"></script><script src="bank05.js"></script><script src="bank06.js"></script><script src="bank07.js"></script><script src="bank08.js"></script><script src="bank09a.js"></script><script src="bank09b.js"></script><script src="bank09c.js"></script><script src="bank09d.js"></script><script src="bank09e.js"></script>
+<script src="visual-bank.js"></script><script src="app.js"></script>
+</body></html>
